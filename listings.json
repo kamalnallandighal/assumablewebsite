@@ -9,7 +9,13 @@
     "lat": 33.4640,
     "lng": -112.0740,
     "isAssumable": true,
-    "photo": "https://picsum.photos/seed/phx1/400/300"
+    "photo": "https://picsum.photos/seed/phx1/400/300",
+    "rate": "2.99%",
+    "marketRate": "6.37%",
+    "assumedMonthly": "$1,621",
+    "marketMonthly": "$2,399",
+    "downPayment": "$42,000",
+    "loanType": "VA"
   },
   {
     "id": "2",
@@ -21,7 +27,13 @@
     "lat": 33.5090,
     "lng": -111.9820,
     "isAssumable": false,
-    "photo": "https://picsum.photos/seed/phx2/400/300"
+    "photo": "https://picsum.photos/seed/phx2/400/300",
+    "rate": "6.37%",
+    "marketRate": "6.37%",
+    "assumedMonthly": "$7,791",
+    "marketMonthly": "$7,791",
+    "downPayment": "$250,000",
+    "loanType": null
   },
   {
     "id": "3",
@@ -33,7 +45,13 @@
     "lat": 33.4820,
     "lng": -112.0660,
     "isAssumable": true,
-    "photo": "https://picsum.photos/seed/phx3/400/300"
+    "photo": "https://picsum.photos/seed/phx3/400/300",
+    "rate": "3.25%",
+    "marketRate": "6.37%",
+    "assumedMonthly": "$2,155",
+    "marketMonthly": "$3,086",
+    "downPayment": "$55,000",
+    "loanType": "FHA"
   },
   {
     "id": "4",
@@ -45,7 +63,13 @@
     "lat": 33.4960,
     "lng": -112.0250,
     "isAssumable": false,
-    "photo": "https://picsum.photos/seed/phx4/400/300"
+    "photo": "https://picsum.photos/seed/phx4/400/300",
+    "rate": "6.37%",
+    "marketRate": "6.37%",
+    "assumedMonthly": "$5,146",
+    "marketMonthly": "$5,146",
+    "downPayment": "$165,000",
+    "loanType": null
   },
   {
     "id": "5",
@@ -57,7 +81,13 @@
     "lat": 33.5230,
     "lng": -112.0470,
     "isAssumable": true,
-    "photo": "https://picsum.photos/seed/phx5/400/300"
+    "photo": "https://picsum.photos/seed/phx5/400/300",
+    "rate": "2.625%",
+    "marketRate": "6.37%",
+    "assumedMonthly": "$2,759",
+    "marketMonthly": "$4,271",
+    "downPayment": "$85,000",
+    "loanType": "VA"
   },
   {
     "id": "6",
@@ -69,7 +99,13 @@
     "lat": 33.4590,
     "lng": -112.0850,
     "isAssumable": true,
-    "photo": "https://picsum.photos/seed/phx6/400/300"
+    "photo": "https://picsum.photos/seed/phx6/400/300",
+    "rate": "3.75%",
+    "marketRate": "6.37%",
+    "assumedMonthly": "$1,690",
+    "marketMonthly": "$2,276",
+    "downPayment": "$15,000",
+    "loanType": "FHA"
   },
   {
     "id": "7",
@@ -81,7 +117,13 @@
     "lat": 33.4950,
     "lng": -111.9920,
     "isAssumable": false,
-    "photo": "https://picsum.photos/seed/phx7/400/300"
+    "photo": "https://picsum.photos/seed/phx7/400/300",
+    "rate": "6.37%",
+    "marketRate": "6.37%",
+    "assumedMonthly": "$4,645",
+    "marketMonthly": "$4,645",
+    "downPayment": "$149,000",
+    "loanType": null
   },
   {
     "id": "8",
@@ -93,7 +135,13 @@
     "lat": 33.4620,
     "lng": -112.0580,
     "isAssumable": true,
-    "photo": "https://picsum.photos/seed/phx8/400/300"
+    "photo": "https://picsum.photos/seed/phx8/400/300",
+    "rate": "2.75%",
+    "marketRate": "6.37%",
+    "assumedMonthly": "$2,143",
+    "marketMonthly": "$3,273",
+    "downPayment": "$45,000",
+    "loanType": "VA"
   },
   {
     "id": "9",
@@ -105,7 +153,13 @@
     "lat": 33.6360,
     "lng": -111.9930,
     "isAssumable": false,
-    "photo": "https://picsum.photos/seed/phx9/400/300"
+    "photo": "https://picsum.photos/seed/phx9/400/300",
+    "rate": "6.37%",
+    "marketRate": "6.37%",
+    "assumedMonthly": "$2,806",
+    "marketMonthly": "$2,806",
+    "downPayment": "$90,000",
+    "loanType": null
   },
   {
     "id": "10",
@@ -117,6 +171,120 @@
     "lat": 33.4090,
     "lng": -112.0470,
     "isAssumable": false,
-    "photo": "https://picsum.photos/seed/phx10/400/300"
+    "photo": "https://picsum.photos/seed/phx10/400/300",
+    "rate": "6.37%",
+    "marketRate": "6.37%",
+    "assumedMonthly": "$1,964",
+    "marketMonthly": "$1,964",
+    "downPayment": "$63,000",
+    "loanType": null
+  },
+  {
+    "id": "11",
+    "address": "2240 W Baseline Rd, Mesa, AZ 85202",
+    "price": 419000,
+    "beds": 3,
+    "baths": 2,
+    "sqft": 1620,
+    "lat": 33.3950,
+    "lng": -111.8680,
+    "isAssumable": true,
+    "photo": "https://picsum.photos/seed/mesa1/400/300",
+    "rate": "3.125%",
+    "marketRate": "6.37%",
+    "assumedMonthly": "$1,797",
+    "marketMonthly": "$2,612",
+    "downPayment": "$38,000",
+    "loanType": "VA"
+  },
+  {
+    "id": "12",
+    "address": "945 S Dobson Rd, Mesa, AZ 85202",
+    "price": 279000,
+    "beds": 2,
+    "baths": 1,
+    "sqft": 1020,
+    "lat": 33.3890,
+    "lng": -111.8820,
+    "isAssumable": true,
+    "photo": "https://picsum.photos/seed/mesa2/400/300",
+    "rate": "2.875%",
+    "marketRate": "6.37%",
+    "assumedMonthly": "$1,159",
+    "marketMonthly": "$1,739",
+    "downPayment": "$0",
+    "loanType": "FHA"
+  },
+  {
+    "id": "13",
+    "address": "1480 N Arizona Ave, Chandler, AZ 85225",
+    "price": 552000,
+    "beds": 4,
+    "baths": 3,
+    "sqft": 2340,
+    "lat": 33.3062,
+    "lng": -111.8413,
+    "isAssumable": true,
+    "photo": "https://picsum.photos/seed/chand1/400/300",
+    "rate": "2.625%",
+    "marketRate": "6.37%",
+    "assumedMonthly": "$2,222",
+    "marketMonthly": "$3,442",
+    "downPayment": "$62,000",
+    "loanType": "VA"
+  },
+  {
+    "id": "14",
+    "address": "3310 W Ray Rd, Chandler, AZ 85226",
+    "price": 468000,
+    "beds": 3,
+    "baths": 2,
+    "sqft": 1890,
+    "lat": 33.2881,
+    "lng": -111.9120,
+    "isAssumable": true,
+    "photo": "https://picsum.photos/seed/chand2/400/300",
+    "rate": "3.5%",
+    "marketRate": "6.37%",
+    "assumedMonthly": "$2,102",
+    "marketMonthly": "$2,919",
+    "downPayment": "$28,000",
+    "loanType": "FHA"
+  },
+  {
+    "id": "15",
+    "address": "7820 W McDowell Rd, Phoenix, AZ 85035",
+    "price": 340000,
+    "beds": 3,
+    "baths": 2,
+    "sqft": 1380,
+    "lat": 33.4780,
+    "lng": -112.2310,
+    "isAssumable": true,
+    "photo": "https://picsum.photos/seed/phx11/400/300",
+    "rate": "4.5%",
+    "marketRate": "6.37%",
+    "assumedMonthly": "$1,722",
+    "marketMonthly": "$2,120",
+    "downPayment": "$20,000",
+    "loanType": "FHA"
+  },
+  {
+    "id": "16",
+    "address": "15602 N 35th Ave, Phoenix, AZ 85053",
+    "price": 398000,
+    "beds": 4,
+    "baths": 2,
+    "sqft": 1760,
+    "lat": 33.6210,
+    "lng": -112.1280,
+    "isAssumable": true,
+    "photo": "https://picsum.photos/seed/phx12/400/300",
+    "rate": "2.75%",
+    "marketRate": "6.37%",
+    "assumedMonthly": "$1,625",
+    "marketMonthly": "$2,482",
+    "downPayment": "$33,000",
+    "loanType": "VA"
   }
 ]

@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Properties — Assumable Homes</title>
     <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
   </head>
   <body>
     <header class="site-header">
@@ -52,6 +55,115 @@
         <section class="map-wrap"><div id="map"></div></section>
       </main>
     </section>
+      <!-- Property Detail Modal -->
+      <div id="detailModal" class="detail-overlay" aria-hidden="true">
+        <div class="detail-panel">
+          <button class="detail-close" id="detailClose">&times;</button>
+
+          <!-- Gallery -->
+          <div class="detail-gallery-wrap">
+            <img id="galleryImg" class="gallery-img" src="" alt="Property photo" />
+            <button class="gallery-btn gallery-prev" id="galleryPrev">&#8249;</button>
+            <button class="gallery-btn gallery-next" id="galleryNext">&#8250;</button>
+            <div class="gallery-footer">
+              <div id="galleryDots" class="gallery-dots"></div>
+              <div id="galleryCount" class="gallery-count">1 / 5</div>
+            </div>
+          </div>
+
+          <!-- Scrollable Body -->
+          <div class="detail-body">
+
+            <!-- Header -->
+            <div class="detail-header-block">
+              <div class="detail-price-row">
+                <span id="detailPrice" class="detail-price"></span>
+                <div id="detailBadges" class="detail-badges"></div>
+              </div>
+              <div id="detailAddress" class="detail-address"></div>
+              <div id="detailMetaPills" class="detail-meta-pills"></div>
+            </div>
+
+            <!-- About -->
+            <div class="detail-card">
+              <h3 class="detail-card-title">About this home</h3>
+              <p id="detailDescription" class="detail-description"></p>
+            </div>
+
+            <!-- Features -->
+            <div class="detail-card">
+              <h3 class="detail-card-title">Features</h3>
+              <div id="detailFeatures" class="feat-grid"></div>
+            </div>
+
+            <!-- Property Details Accordion -->
+            <div class="detail-card">
+              <h3 class="detail-card-title">Property Details</h3>
+              <div id="detailAccordion" class="detail-accordion"></div>
+            </div>
+
+            <!-- Payment Calculator -->
+            <div class="detail-card">
+              <h3 class="detail-card-title">Payment Calculator</h3>
+              <div class="calc-monthly-row">
+                <span id="calcMonthlyAmount" class="calc-monthly-amount"></span>
+                <span class="calc-per-month">per month</span>
+              </div>
+              <p class="calc-note-text">In an assumption, your down payment equals the seller's equity. You'll need at least 5% in cash, and the rest can be covered with secondary financing.</p>
+              <div class="calc-slider-header">
+                <span>How much can you bring down?</span>
+                <span id="calcDownDisplay" class="calc-down-value"></span>
+              </div>
+              <input type="range" id="calcSlider" class="calc-slider" />
+              <div class="calc-slider-labels">
+                <span id="calcSliderMin"></span>
+                <span id="calcSliderMax"></span>
+              </div>
+              <div id="calcComparison" class="calc-comparison">
+                <div class="calc-comp-card assumed">
+                  <div class="calc-comp-label">Assumed rate</div>
+                  <div id="calcAssumedRate" class="calc-comp-rate"></div>
+                  <div id="calcAssumedPayment" class="calc-comp-payment"></div>
+                </div>
+                <div class="calc-comp-card">
+                  <div class="calc-comp-label">Market rate</div>
+                  <div id="calcMarketRate" class="calc-comp-rate"></div>
+                  <div id="calcMarketPayment" class="calc-comp-payment"></div>
+                </div>
+              </div>
+              <div id="calcSavingsBanner" class="calc-savings-banner" style="display:none">
+                <span class="calc-savings-label">You save with this assumable rate</span>
+                <div style="display:flex;align-items:baseline;gap:8px;">
+                  <span id="calcSavingsAmount" class="calc-savings-amount"></span>
+                  <span id="calcSavingsTotal" style="font-size:12px;opacity:0.75;"></span>
+                </div>
+              </div>
+              <div id="calcNotAssumable" class="calc-not-assumable" style="display:none">
+                This listing does not have an assumable mortgage.
+              </div>
+            </div>
+
+            <!-- Tour Scheduler -->
+            <div class="detail-card">
+              <h3 class="detail-card-title">Schedule a Tour</h3>
+              <div id="tourDays" class="tour-days-row"></div>
+              <div id="tourTimesWrap"></div>
+              <button id="tourConfirmBtn" class="btn-confirm-tour" style="display:none">Confirm Tour</button>
+              <div id="tourConfirmed" class="tour-confirmed" style="display:none">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Tour request sent! We'll confirm your appointment shortly.
+              </div>
+            </div>
+
+            <!-- Contact -->
+            <div class="detail-contact-row">
+              <button id="detailContactBtn" class="btn-contact-agent">Contact Agent</button>
+            </div>
+
+          </div><!-- .detail-body -->
+        </div><!-- .detail-panel -->
+      </div><!-- #detailModal -->
+
       <!-- Lead capture modal -->
       <div id="leadModal" class="modal" aria-hidden="true">
         <div class="modal-content">

@@ -1,125 +1,1094 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Assumable Homes — Luxury Division</title>
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-    <header class="site-header">
-      <div class="container header-inner">
-        <div class="logo">Luxury Division</div>
-        <nav class="nav">
-          <a href="properties.html">Properties</a>
-          <a href="#how">How it works</a>
-          <a href="#contact">Contact</a>
-        </nav>
-        <div class="auth">
-          <button class="btn btn-outline">Login</button>
-          <button class="btn btn-primary">List / Signup</button>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assumable Homes for Sale in Arizona — Luxury Division</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --orange: #E8882A;
+      --dark: #2b2b2b;
+      --dark2: #333;
+      --green: #4caf50;
+      --border: #e0e0e0;
+      --f: 'DM Sans', sans-serif;
+    }
+    body { font-family: var(--f); color: var(--dark); background: #fff; overflow-x: hidden; }
+
+    /* SCROLL REVEAL */
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity .65s ease, transform .65s ease; }
+    .reveal.visible { opacity: 1; transform: none; }
+    .reveal-up { opacity: 0; transform: translateY(40px); transition: opacity .7s ease, transform .7s ease; }
+    .reveal-up.visible { opacity: 1; transform: none; }
+    .stagger > * { opacity: 0; transform: translateY(24px); transition: opacity .55s ease, transform .55s ease; }
+    .stagger.visible > *:nth-child(1) { opacity:1; transform:none; transition-delay:.05s }
+    .stagger.visible > *:nth-child(2) { opacity:1; transform:none; transition-delay:.15s }
+    .stagger.visible > *:nth-child(3) { opacity:1; transform:none; transition-delay:.25s }
+
+    /* TOP BAR */
+    .topbar {
+      background: #3a3a3a; color: #fff;
+      padding: 8px 24px;
+      display: flex; align-items: center; gap: 12px;
+      font-size: 13px;
+    }
+    .topbar-av {
+      width: 28px; height: 28px; border-radius: 50%;
+      overflow: hidden; flex-shrink: 0; background: #888;
+    }
+    .topbar-av img { width: 100%; height: 100%; object-fit: cover; }
+    .topbar-phone {
+      border: 1px solid rgba(255,255,255,0.42);
+      border-radius: 20px; padding: 4px 14px;
+      font-size: 13px; font-weight: 500;
+    }
+
+    /* NAV */
+    .nav {
+      background: #e8e8e8;
+      position: sticky; top: 0; z-index: 200;
+      display: flex; align-items: center;
+      padding: 0 32px; height: 64px;
+      border-bottom: 1px solid #d5d5d5;
+    }
+    .nav-logo {
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      line-height: 1.5; color: var(--dark);
+    }
+    .nav-links {
+      display: flex; gap: 32px; list-style: none;
+      margin: 0 auto;
+    }
+    .nav-links a {
+      text-decoration: none; color: var(--dark);
+      font-size: 14px; font-weight: 500;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--orange); }
+    .nav-user { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .nav-av {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--dark); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 600;
+    }
+    .nav-name { font-size: 14px; font-weight: 500; }
+
+    /* HERO */
+    .hero {
+      position: relative; height: 520px;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center; overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background: url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1600&q=80&auto=format&fit=crop') center/cover no-repeat;
+    }
+    .hero-ov {
+      position: absolute; inset: 0;
+      background: linear-gradient(160deg, rgba(0,0,0,.48) 0%, rgba(20,10,0,.62) 100%);
+    }
+
+    /* HERO ENTRY ANIMATION */
+    .hero-badge { animation: fadeDown .7s ease both .1s; }
+    .hero h1    { animation: fadeDown .7s ease both .22s; }
+    .hero-sub   { animation: fadeDown .6s ease both .38s; }
+    .hero-search{ animation: fadeDown .6s ease both .5s; }
+    .hero-count { animation: fadeDown .6s ease both .62s; }
+    @keyframes fadeDown {
+      from { opacity:0; transform: translateY(-16px); }
+      to   { opacity:1; transform: none; }
+    }
+    .hero-c {
+      position: relative; z-index: 1; color: #fff;
+      max-width: 680px; padding: 0 24px;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(30,30,30,.82); border-radius: 24px;
+      padding: 7px 20px; font-size: 13px; font-weight: 500;
+      margin-bottom: 20px; backdrop-filter: blur(6px);
+    }
+    .hero h1 {
+      font-size: clamp(38px, 6.5vw, 68px);
+      font-weight: 700; line-height: 1.08; margin-bottom: 16px;
+    }
+    .hero-sub { font-size: 16px; opacity: .92; margin-bottom: 28px; }
+    .hero-sub strong { font-weight: 700; }
+    .hero-search {
+      display: flex; background: #fff; border-radius: 10px;
+      max-width: 520px; margin: 0 auto 20px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.25); overflow: hidden;
+    }
+    .hero-search input {
+      flex: 1; border: none; outline: none;
+      padding: 16px 22px; font-size: 15px;
+      font-family: var(--f); color: #333;
+    }
+    .hero-search input::placeholder { color: #aaa; }
+    .hero-search button {
+      background: none; border: none;
+      padding: 0 20px; cursor: pointer;
+      color: #888; display: flex; align-items: center;
+      transition: color .2s;
+    }
+    .hero-search button:hover { color: var(--dark); }
+    .hero-count {
+      font-size: 14px; display: flex;
+      align-items: center; justify-content: center; gap: 8px; opacity: .9;
+    }
+    .hero-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green); flex-shrink: 0;
+      box-shadow: 0 0 0 0 rgba(76,175,80,.5);
+      animation: pulse 2.2s ease infinite;
+    }
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(76,175,80,.5); }
+      60%  { box-shadow: 0 0 0 7px rgba(76,175,80,0); }
+      100% { box-shadow: 0 0 0 0 rgba(76,175,80,0); }
+    }
+
+    /* REGION CARDS */
+    .region-sec { padding: 52px 32px; }
+    .region-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 20px; max-width: 1200px; margin: 0 auto;
+    }
+    .region-card {
+      border-radius: 18px; overflow: hidden;
+      aspect-ratio: 4/3; position: relative; cursor: pointer;
+    }
+    .region-card img {
+      width: 100%; height: 100%; object-fit: cover;
+      display: block; transition: transform .45s ease;
+    }
+    .region-card:hover img { transform: scale(1.05); }
+    .region-ov {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,.72) 0%, rgba(0,0,0,.15) 55%, transparent 100%);
+    }
+    .region-info {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 20px 22px 22px; color: #fff;
+    }
+    .region-chip {
+      display: inline-block; background: rgba(30,30,30,.72);
+      border-radius: 20px; padding: 4px 14px;
+      font-size: 11px; font-weight: 500;
+      margin-bottom: 10px; backdrop-filter: blur(4px);
+    }
+    .region-name {
+      font-size: 22px; font-weight: 700;
+      letter-spacing: .06em; margin-bottom: 6px;
+    }
+    .region-link {
+      font-size: 13px; color: #fff;
+      text-decoration: underline; text-underline-offset: 3px;
+    }
+
+    /* MORTGAGE SECTION */
+    .mortgage-sec { padding: 80px 32px; text-align: center; }
+
+    .diagram {
+      position: relative; width: 420px; height: 330px;
+      margin: 0 auto 64px;
+    }
+    .diagram svg {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      pointer-events: none; overflow: visible;
+    }
+    .d-node {
+      position: absolute; border-radius: 50%;
+      overflow: hidden; border: 2px solid #ddd; background: #fff;
+    }
+    .d-node img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .d-center {
+      width: 166px; height: 166px;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -45%);
+    }
+    .d-left  { width: 90px; height: 90px; left: 18px; top: 50%; transform: translateY(-20%); }
+    .d-right { width: 90px; height: 90px; right: 18px; top: 50%; transform: translateY(-20%); }
+    .d-top {
+      width: 54px; height: 54px;
+      left: 50%; top: 0; transform: translateX(-50%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 19px; color: #555; overflow: visible;
+    }
+
+    .mortgage-sec h2 {
+      font-size: clamp(28px, 4vw, 44px); font-weight: 600;
+      color: #222; margin-bottom: 16px;
+    }
+    .mortgage-sec h2 em { font-style: normal; color: #888; }
+    .mortgage-sec .lead {
+      max-width: 520px; margin: 0 auto 56px;
+      font-size: 15px; line-height: 1.65; color: #555;
+    }
+    .mortgage-sec .lead strong { font-weight: 600; color: #333; }
+
+    .benefit-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 20px; max-width: 1100px; margin: 0 auto; text-align: left;
+    }
+    .benefit-card {
+      border: 1px solid #e5e5e5; border-radius: 18px; padding: 32px 28px;
+      transition: transform .25s ease, box-shadow .25s ease, border-color .25s;
+    }
+    .benefit-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 16px 48px rgba(0,0,0,.08);
+      border-color: #d0d0d0;
+    }
+    .benefit-icon {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: #333; display: flex; align-items: center;
+      justify-content: center; color: #fff; margin-bottom: 20px;
+    }
+    .benefit-icon svg { width: 22px; height: 22px; }
+    .benefit-card h3 { font-size: 20px; font-weight: 600; margin-bottom: 14px; line-height: 1.3; }
+    .benefit-card h3 em { font-style: normal; font-weight: 400; }
+    .benefit-card p { font-size: 14px; line-height: 1.7; color: #666; }
+
+    /* CERTIFIED */
+    .cert-sec { background: var(--dark2); padding: 56px 0; overflow: hidden; }
+    .cert-header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      padding: 0 48px; margin-bottom: 36px; gap: 32px;
+    }
+    .cert-title {
+      color: #fff; font-size: clamp(26px, 4vw, 48px);
+      font-weight: 600; line-height: 1.15; max-width: 380px;
+    }
+    .cert-title .dim { color: #666; }
+    .cert-pill {
+      background: rgba(255,255,255,.1); backdrop-filter: blur(4px);
+      border-radius: 16px; padding: 20px 24px;
+      max-width: 300px; color: #fff;
+      font-size: 13px; line-height: 1.65; text-align: center;
+    }
+
+    .carousel-outer { overflow: hidden; }
+    .carousel-track {
+      display: flex; gap: 16px; width: max-content;
+      padding: 4px 48px; margin-bottom: 16px;
+    }
+    .row1 { animation: cscroll 40s linear infinite; will-change: transform; }
+    .row2 { animation: cscroll 52s linear infinite reverse; will-change: transform; }
+    .carousel-track:hover { animation-play-state: paused; }
+    @keyframes cscroll {
+      from { transform: translate3d(0,0,0); }
+      to   { transform: translate3d(-50%,0,0); }
+    }
+
+    /* LISTING CARD */
+    .lc {
+      width: 296px; flex-shrink: 0; background: #fff;
+      border-radius: 16px; overflow: hidden; cursor: pointer;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .lc:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,.35); }
+    .lc-img { position: relative; height: 180px; }
+    .lc-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .lc-active {
+      position: absolute; top: 10px; right: 10px;
+      background: #fff; border-radius: 20px;
+      padding: 3px 10px; font-size: 11px; font-weight: 600;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .lc-active-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+    .lc-btns { position: absolute; top: 10px; left: 10px; display: flex; gap: 5px; }
+    .lc-btn {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: rgba(255,255,255,.85); border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 12px; color: #555;
+    }
+    .lc-cert {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: rgba(0,0,0,.72); color: #fff;
+      padding: 7px 12px; font-size: 12px; font-weight: 500;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .lc-body { padding: 14px 14px 16px; }
+    .lc-top { display: flex; justify-content: space-between; margin-bottom: 3px; }
+    .lc-rate { font-size: 14px; font-weight: 600; }
+    .lc-rate-old { font-size: 11px; color: #999; }
+    .lc-mo { font-size: 14px; font-weight: 600; text-align: right; }
+    .lc-mo-old { font-size: 11px; color: #999; text-decoration: line-through; text-align: right; }
+    .lc-price-row {
+      display: flex; align-items: center; gap: 6px;
+      margin-bottom: 8px; flex-wrap: wrap;
+    }
+    .lc-price { font-size: 15px; font-weight: 700; }
+    .lc-down { font-size: 11px; color: #777; }
+    .lc-loan {
+      background: #333; color: #fff;
+      font-size: 10px; font-weight: 600;
+      padding: 2px 7px; border-radius: 4px; margin-left: auto;
+    }
+    .lc-meta { display: flex; gap: 10px; font-size: 12px; color: #555; margin-bottom: 7px; align-items: center; }
+    .lc-meta span { display: flex; align-items: center; gap: 4px; }
+    .lc-meta svg { width: 12px; height: 12px; flex-shrink: 0; }
+    .lc-addr { font-size: 11px; color: #999; line-height: 1.4; }
+
+    /* HOW IT WORKS */
+    .how-sec { padding: 80px 32px; }
+    .how-sec h2 {
+      font-size: clamp(28px, 4vw, 46px); font-weight: 600;
+      text-align: center; margin-bottom: 72px; letter-spacing: -.01em;
+    }
+    .how-sec h2 .lux { color: #555; font-weight: 600; }
+    .how-sec h2 .div { color: #aaa; font-weight: 400; }
+    .steps {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 40px; max-width: 1000px; margin: 0 auto;
+      align-items: start;
+    }
+    .step { position: relative; }
+    .step-num {
+      font-size: 88px; font-weight: 800; color: #f0f0f0;
+      line-height: 1; margin-bottom: -22px;
+      user-select: none; letter-spacing: -.04em;
+    }
+    .step-icon {
+      width: 38px; height: 38px; border-radius: 50%;
+      border: 1.5px solid #ccc; display: flex;
+      align-items: center; justify-content: center;
+      color: #444; margin-bottom: 20px; background: #fff;
+      position: relative; z-index: 1;
+    }
+    .step-icon svg { width: 16px; height: 16px; }
+    .step h3 { font-size: 24px; font-weight: 700; margin-bottom: 14px; line-height: 1.25; color: #1a1a1a; }
+    .step p { font-size: 14px; line-height: 1.75; color: #777; margin-bottom: 18px; }
+    .step-cta {
+      font-size: 14px; color: #222; text-decoration: none;
+      display: inline-flex; align-items: baseline; gap: 3px;
+    }
+    .step-cta strong { font-weight: 700; }
+    .step-cta em { font-style: normal; color: #999; font-weight: 400; }
+    .step-cta span { font-weight: 400; color: #999; }
+
+    /* WIN-WIN */
+    .winwin-sec { padding: 80px 32px; }
+    .winwin-sec h2 { font-size: clamp(26px, 4vw, 42px); font-weight: 600; text-align: center; margin-bottom: 48px; }
+    .winwin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 1100px; margin: 0 auto; }
+    .ww {
+      border: 1px solid #e5e5e5; border-radius: 18px; overflow: hidden;
+      transition: transform .25s ease, box-shadow .25s ease;
+    }
+    .ww:hover { transform: translateY(-5px); box-shadow: 0 16px 48px rgba(0,0,0,.1); }
+    .ww-img { position: relative; height: 220px; }
+    .ww-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .ww-img::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,.55) 0%, transparent 55%); }
+    .ww-label { position: absolute; bottom: 14px; left: 16px; color: #fff; font-size: 18px; font-weight: 700; z-index: 1; }
+    .ww-body { padding: 20px 20px 24px; }
+    .ww-body p { font-size: 14px; line-height: 1.7; color: #555; }
+
+    /* AGENT */
+    .agent-sec { background: var(--dark); padding: 80px 32px; text-align: center; color: #fff; }
+    .agent-photo { width: 100px; height: 100px; border-radius: 50%; overflow: hidden; margin: 0 auto 28px; border: 3px solid rgba(255,255,255,.2); }
+    .agent-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .agent-sec h2 { font-size: clamp(28px, 4vw, 50px); font-weight: 600; line-height: 1.15; margin-bottom: 24px; max-width: 680px; margin-left: auto; margin-right: auto; }
+    .agent-sec h2 em { font-style: normal; color: var(--orange); }
+    .agent-sec p { font-size: 15px; line-height: 1.7; max-width: 580px; margin: 0 auto 36px; opacity: .82; }
+    .agent-sec p strong { font-weight: 600; }
+    .contact-pill {
+      display: inline-flex; align-items: center;
+      background: #fff; border-radius: 40px;
+      overflow: hidden; border: none; cursor: pointer;
+      font-family: var(--f);
+    }
+    .contact-pill span { padding: 12px 20px; font-size: 14px; font-weight: 500; color: #333; }
+    .contact-pill-icon {
+      width: 44px; height: 44px; background: #333;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; transition: background .2s;
+    }
+    .contact-pill-icon svg { width: 17px; height: 17px; }
+    .contact-pill:hover .contact-pill-icon { background: #111; }
+    .contact-pill-icon + .contact-pill-icon { margin-left: 2px; }
+
+    /* FAQ */
+    .faq-sec { padding: 80px 32px; }
+    .faq-grid { display: grid; grid-template-columns: 1fr 360px; gap: 56px; max-width: 1100px; margin: 0 auto; align-items: start; }
+    .faq-eye { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: #aaa; margin-bottom: 10px; }
+    .faq-left h2 { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+    .faq-left .sub { font-size: 14px; color: #999; margin-bottom: 32px; }
+    .faq-list { list-style: none; }
+    .faq-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 18px 0; border-bottom: 1px solid #eee;
+      font-size: 15px; font-weight: 500; color: #333;
+      cursor: pointer; transition: color .2s, padding-left .2s;
+      position: relative;
+    }
+    .faq-item:hover { color: var(--orange); padding-left: 6px; }
+    .faq-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #ccc; flex-shrink: 0;
+      transition: background .2s;
+    }
+    .faq-item:hover .faq-dot { background: var(--orange); }
+    .call-card { border: 1px solid #e0e0e0; border-radius: 22px; padding: 36px 28px; text-align: center; }
+    .call-photo { width: 80px; height: 80px; border-radius: 50%; overflow: hidden; margin: 0 auto 18px; }
+    .call-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .call-card h3 { font-size: 20px; font-weight: 600; margin-bottom: 24px; }
+    .call-btn { background: var(--dark); color: #fff; border: none; border-radius: 40px; padding: 14px 36px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: var(--f); transition: background .2s; }
+    .call-btn:hover { background: #111; }
+
+    /* CTA HERO */
+    .cta-hero { position: relative; height: 480px; display: flex; align-items: center; justify-content: center; text-align: center; overflow: hidden; }
+    .cta-bg { position: absolute; inset: 0; background: url('https://images.unsplash.com/photo-1560184897-ae75f418493e?w=1600&q=80&auto=format&fit=crop') center/cover no-repeat; }
+    .cta-ov { position: absolute; inset: 0; background: rgba(0,0,0,.62); }
+    .cta-c { position: relative; z-index: 1; color: #fff; }
+    .cta-c h2 { font-size: clamp(32px, 5vw, 56px); font-weight: 600; margin-bottom: 32px; max-width: 580px; }
+    .cta-btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: rgba(255,255,255,.15); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.3); color: #fff;
+      border-radius: 40px; padding: 14px 28px;
+      font-size: 15px; font-weight: 500; cursor: pointer;
+      text-decoration: none; font-family: var(--f);
+      transition: background .2s;
+    }
+    .cta-btn:hover { background: rgba(255,255,255,.25); }
+
+    /* FOOTER */
+    footer { background: #2a2a2a; color: #fff; padding: 56px 32px 40px; }
+    .footer-brand { display: flex; align-items: center; gap: 18px; margin-bottom: 44px; }
+    .footer-av { width: 58px; height: 58px; border-radius: 50%; overflow: hidden; }
+    .footer-av img { width: 100%; height: 100%; object-fit: cover; }
+    .footer-name { font-size: 22px; font-weight: 600; color: var(--orange); }
+    .footer-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; padding-top: 36px; border-top: 1px solid rgba(255,255,255,.1); }
+    .footer-col h4 { font-size: 14px; font-weight: 600; margin-bottom: 16px; }
+    .footer-col a, .footer-col p { display: block; font-size: 13px; color: rgba(255,255,255,.5); text-decoration: none; margin-bottom: 8px; }
+    .footer-col a:hover { color: #fff; }
+    .footer-copy { margin-top: 40px; font-size: 12px; color: rgba(255,255,255,.3); }
+
+    /* AUTH */
+    .nav-login-btn {
+      background: var(--dark); color: #fff;
+      border: none; border-radius: 8px;
+      padding: 8px 18px; font-size: 13px; font-weight: 600;
+      cursor: pointer; font-family: var(--f);
+      transition: background .2s;
+    }
+    .nav-login-btn:hover { background: #111; }
+    .nav-profile { position: relative; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .nav-profile-av {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--dark); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; letter-spacing: .02em;
+      flex-shrink: 0;
+    }
+    .nav-profile-name { font-size: 14px; font-weight: 500; }
+    .nav-profile-chevron { font-size: 10px; color: #888; transition: transform .2s; }
+    .nav-profile.open .nav-profile-chevron { transform: rotate(180deg); }
+    .nav-dropdown {
+      position: absolute; top: calc(100% + 10px); right: 0;
+      background: #fff; border: 1px solid #e5e5e5;
+      border-radius: 14px; min-width: 200px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.12);
+      overflow: hidden; display: none; z-index: 300;
+    }
+    .nav-profile.open .nav-dropdown { display: block; }
+    .nav-dropdown-header {
+      padding: 16px 18px 12px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .nav-dropdown-fullname { font-size: 14px; font-weight: 600; color: #222; margin-bottom: 2px; }
+    .nav-dropdown-user { font-size: 12px; color: #999; }
+    .nav-dropdown-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 18px; font-size: 14px; color: #333;
+      cursor: pointer; transition: background .15s;
+      border: none; background: none; width: 100%;
+      font-family: var(--f); text-align: left;
+    }
+    .nav-dropdown-item:hover { background: #f8f8f8; }
+    .nav-dropdown-item.logout { color: #e53e3e; }
+
+    /* LOGIN MODAL */
+    .login-modal {
+      position: fixed; inset: 0; z-index: 1000;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(0,0,0,.45); backdrop-filter: blur(4px);
+    }
+    .login-modal.open { display: flex; }
+    .login-box {
+      background: #fff; border-radius: 22px;
+      padding: 40px 36px; width: 100%; max-width: 400px;
+      box-shadow: 0 24px 80px rgba(0,0,0,.2);
+      position: relative; animation: modalIn .25s ease both;
+    }
+    @keyframes modalIn {
+      from { opacity:0; transform: scale(.95) translateY(10px); }
+      to   { opacity:1; transform: none; }
+    }
+    .login-box h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+    .login-box .sub { font-size: 14px; color: #999; margin-bottom: 28px; }
+    .login-close {
+      position: absolute; top: 16px; right: 18px;
+      background: #f5f5f5; border: none; border-radius: 50%;
+      width: 30px; height: 30px; font-size: 14px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      color: #666; transition: background .15s;
+    }
+    .login-close:hover { background: #eee; }
+    .login-field { margin-bottom: 16px; }
+    .login-field label { display: block; font-size: 12px; font-weight: 600; color: #555; margin-bottom: 6px; letter-spacing: .03em; text-transform: uppercase; }
+    .login-field input {
+      width: 100%; border: 1.5px solid #e5e5e5; border-radius: 10px;
+      padding: 12px 14px; font-size: 15px; font-family: var(--f);
+      outline: none; transition: border-color .2s; color: #222;
+    }
+    .login-field input:focus { border-color: var(--dark); }
+    .login-error { font-size: 13px; color: #e53e3e; margin-bottom: 14px; display: none; }
+    .login-submit {
+      width: 100%; background: var(--dark); color: #fff;
+      border: none; border-radius: 12px; padding: 14px;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      font-family: var(--f); transition: background .2s; margin-top: 4px;
+    }
+    .login-submit:hover { background: #111; }
+
+    @media (max-width: 900px) {
+      .region-grid, .benefit-grid, .steps, .winwin-grid { grid-template-columns: 1fr; }
+      .faq-grid { grid-template-columns: 1fr; }
+      .footer-cols { grid-template-columns: 1fr; }
+      .cert-header { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-av">
+    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=56&h=56&fit=crop&crop=face" alt="">
+  </div>
+  <span>Jeff Salazar — Scottsdale, AZ</span>
+  <span class="topbar-phone">(602) 332-3860</span>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">Luxury<br>Division</div>
+  <ul class="nav-links">
+    <li><a href="properties.html">Property Search</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <div id="navAuthSlot"></div>
+</nav>
+
+<!-- LOGIN MODAL -->
+<div class="login-modal" id="loginModal">
+  <div class="login-box">
+    <button class="login-close" id="loginClose">✕</button>
+    <h2>Welcome back</h2>
+    <p class="sub">Sign in to your account</p>
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="loginUser" placeholder="Enter username" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="Enter password" autocomplete="current-password">
+    </div>
+    <div class="login-error" id="loginError">Incorrect username or password.</div>
+    <button class="login-submit" id="loginSubmit">Sign In</button>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-ov"></div>
+  <div class="hero-c">
+    <div class="hero-badge">Rates as low as 2%</div>
+    <h1>Assumable Homes<br>for sale in Arizona</h1>
+    <p class="hero-sub">Find homes with ultra low rates. <strong>Save thousands</strong> every month.</p>
+    <div class="hero-search">
+      <input type="text" placeholder="Enter an address, city, or state">
+      <button aria-label="Search">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+      </button>
+    </div>
+    <div class="hero-count">
+      <span class="hero-dot"></span>
+      2000+ Assumable Properties available
+    </div>
+  </div>
+</section>
+
+<!-- REGION CARDS -->
+<section class="region-sec">
+  <div class="region-grid stagger">
+    <div class="region-card">
+      <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80&auto=format&fit=crop" alt="Phoenix">
+      <div class="region-ov"></div>
+      <div class="region-info">
+        <div class="region-chip">Assumable Properties</div>
+        <div class="region-name">PHOENIX, ARIZONA</div>
+        <div class="region-link">View Properties →</div>
+      </div>
+    </div>
+    <div class="region-card">
+      <img src="https://images.unsplash.com/photo-1505691723518-36a4d86f8b5b?w=800&q=80&auto=format&fit=crop" alt="Mesa">
+      <div class="region-ov"></div>
+      <div class="region-info">
+        <div class="region-chip">Assumable Properties</div>
+        <div class="region-name">MESA, ARIZONA</div>
+        <div class="region-link">View Properties →</div>
+      </div>
+    </div>
+    <div class="region-card">
+      <img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80&auto=format&fit=crop" alt="Chandler">
+      <div class="region-ov"></div>
+      <div class="region-info">
+        <div class="region-chip">Assumable Properties</div>
+        <div class="region-name">CHANDLER, ARIZONA</div>
+        <div class="region-link">View Properties →</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ASSUMABLE MORTGAGE EXPLAINER -->
+<section class="mortgage-sec">
+  <!-- Circular diagram -->
+  <div class="diagram">
+    <svg viewBox="0 0 420 330" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- arc: top node to left node -->
+      <path d="M 210 54 Q 80 54 63 177" stroke="#ccc" stroke-width="1.5" stroke-dasharray="5 5" fill="none"/>
+      <!-- arc: top node to right node -->
+      <path d="M 210 54 Q 340 54 357 177" stroke="#ccc" stroke-width="1.5" stroke-dasharray="5 5" fill="none"/>
+      <!-- left to center -->
+      <line x1="108" y1="187" x2="127" y2="177" stroke="#ccc" stroke-width="1.5" stroke-dasharray="5 5"/>
+      <!-- right to center -->
+      <line x1="312" y1="187" x2="293" y2="177" stroke="#ccc" stroke-width="1.5" stroke-dasharray="5 5"/>
+    </svg>
+    <!-- % icon top -->
+    <div class="d-node d-top">%</div>
+    <!-- buyer left -->
+    <div class="d-node d-left">
+      <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=180&h=180&fit=crop&crop=face" alt="Buyer">
+    </div>
+    <!-- center house -->
+    <div class="d-node d-center">
+      <img src="https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&q=80&auto=format&fit=crop" alt="House">
+    </div>
+    <!-- seller right -->
+    <div class="d-node d-right">
+      <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=180&h=180&fit=crop&crop=face" alt="Seller">
+    </div>
+  </div>
+
+  <h2 class="reveal">What is an assumable <em>mortgage</em></h2>
+  <p class="lead reveal">An assumable mortgage allows a homebuyer to take over a seller's current loan, locking in <strong>ultra low interest rates</strong> and saving on closing costs.</p>
+
+  <div class="benefit-grid stagger">
+    <div class="benefit-card">
+      <div class="benefit-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="7.5" cy="7.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/><line x1="19" y1="5" x2="5" y2="19"/>
+        </svg>
+      </div>
+      <h3><em>Ultra</em> <strong>Low Interest Rates</strong></h3>
+      <p>Assumable homes have lower interest rates, typically around 2–4%. This lower rate can significantly slash your monthly mortgage payment in half, giving you more buying power and long-term savings.</p>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+        </svg>
+      </div>
+      <h3><em>Lower</em> <strong>Closing Costs</strong></h3>
+      <p>Assumable homes can save you thousands in closing costs since they may not require an appraisal, origination fees, or other expenses typical of a new mortgage—keeping more money in your pocket.</p>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a8 8 0 00-8 8c0 5 8 12 8 12s8-7 8-12a8 8 0 00-8-8z"/><circle cx="12" cy="10" r="2.5"/>
+        </svg>
+      </div>
+      <h3><em>Thousands</em> in <strong>Interest Paid</strong></h3>
+      <p>With an assumable loan, thousands in interest have already been paid, so you're not starting from square one like with a new mortgage. More of your payments go toward the principal, helping you build equity faster.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CERTIFIED PROPERTIES CAROUSEL -->
+<section class="cert-sec">
+  <div class="cert-header">
+    <div class="cert-title">
+      The latest certified<br>properties <span class="dim">on the<br>market</span>
+    </div>
+    <div class="cert-pill">
+      Certified properties have completely accurate information from the listing agent. They are verified and ready for you to take over!
+    </div>
+  </div>
+
+  <div class="carousel-outer">
+    <div class="carousel-track row1" id="row1"></div>
+    <div class="carousel-track row2" id="row2"></div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-sec">
+  <h2 class="reveal">How it works with <span class="lux">Luxury</span> <span class="div">Division</span></h2>
+  <div class="steps stagger">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+      </div>
+      <h3>Get pre-screened to assume</h3>
+      <p>Our specialists qualify you to make sure you're eligible to assume with a low rate, guaranteed.</p>
+      <a href="#contact" class="step-cta"><strong>Apply</strong> <em>to Assume</em></a>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+      </div>
+      <h3>Shop for low-rate homes</h3>
+      <p>Browse through more than 2,000 properties and inquire about the ones you like best.</p>
+      <a href="properties.html" class="step-cta"><strong>Explore</strong> <em>all listings</em></a>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+      </div>
+      <h3>Close on your dream home</h3>
+      <p>Our team handles the entire assumption process for a stress-free experience from start to finish.</p>
+      <a href="properties.html" class="step-cta"><strong>Start Browsing</strong> <em>Properties</em></a>
+    </div>
+  </div>
+</section>
+
+<!-- WIN-WIN -->
+<section class="winwin-sec">
+  <h2 class="reveal">Assuming a loan is a win-win for everyone</h2>
+  <div class="winwin-grid stagger">
+    <div class="ww">
+      <div class="ww-img">
+        <img src="https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=600&q=80&auto=format&fit=crop" alt="Buyers">
+        <div class="ww-label">Buyers</div>
+      </div>
+      <div class="ww-body">
+        <p>Mortgage assumptions can significantly lower a buyer's monthly payments, have lower interest rates, and offer savings on closing costs.</p>
+      </div>
+    </div>
+    <div class="ww">
+      <div class="ww-img">
+        <img src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=600&q=80&auto=format&fit=crop" alt="Sellers">
+        <div class="ww-label">Sellers</div>
+      </div>
+      <div class="ww-body">
+        <p>For sellers, mortgage assumptions open the door to a larger pool of qualified buyers. Many times this results in higher sales prices.</p>
+      </div>
+    </div>
+    <div class="ww">
+      <div class="ww-img">
+        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&q=80&auto=format&fit=crop" alt="Investors">
+        <div class="ww-label">Investors</div>
+      </div>
+      <div class="ww-body">
+        <p>Investors can grow their real estate portfolios by using low-rate loan assumptions, gaining access to properties with great financing terms.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AGENT -->
+<section class="agent-sec">
+  <div class="agent-photo reveal">
+    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face" alt="Jeff Salazar">
+  </div>
+  <h2>Jeff Salazar — Scottsdale,<br>AZ is a certified <em>assumption expert</em></h2>
+  <p>Jeff has completed <strong>advanced training in loan assumptions</strong>—an area most agents overlook. They understand the detailed steps, lender requirements, and how to guide buyers and sellers smoothly through the process. With Jeff, you're not just getting a realtor—you're getting a knowledgeable partner who knows how to turn a complex process into a smart opportunity.</p>
+  <button class="contact-pill">
+    <span>Contact Jeff</span>
+    <div class="contact-pill-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+      </svg>
+    </div>
+    <div class="contact-pill-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.07 1.18 2 2 0 012.03 0h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L6.91 7.91a16 16 0 006.29 6.29l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+      </svg>
+    </div>
+  </button>
+</section>
+
+<!-- FAQ -->
+<section class="faq-sec" id="contact">
+  <div class="faq-grid">
+    <div class="faq-left">
+      <div class="faq-eye">FEEL FREE TO CONTACT US</div>
+      <h2>Do You Have Any Questions?</h2>
+      <p class="sub">Check out this FAQ to get more information</p>
+      <ul class="faq-list">
+        <li class="faq-item"><span class="faq-dot"></span>What does 'assumable mortgage' mean?</li>
+        <li class="faq-item"><span class="faq-dot"></span>How can I be eligible for an assumable mortgage?</li>
+        <li class="faq-item"><span class="faq-dot"></span>How do I identify properties with assumable mortgages?</li>
+        <li class="faq-item"><span class="faq-dot"></span>Why is opting for an assumable mortgage advantageous?</li>
+        <li class="faq-item"><span class="faq-dot"></span>Is a down payment necessary?</li>
+        <li class="faq-item"><span class="faq-dot"></span>Which mortgages can I assume?</li>
+      </ul>
+    </div>
+    <div class="faq-right">
+      <div class="call-card">
+        <div class="call-photo">
+          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=160&h=160&fit=crop&crop=face" alt="Jeff">
         </div>
+        <h3>Book a 15 minute intro call</h3>
+        <button class="call-btn">Schedule Now</button>
       </div>
-    </header>
+    </div>
+  </div>
+</section>
 
-    <section class="hero">
-      <div class="hero-bg"></div>
-      <div class="container hero-content">
-        <h1>Assumable Homes for sale in Arizona</h1>
-        <p class="lead">Find properties with assumable loans and lower monthly payments.</p>
-        <form class="search">
-          <input type="text" placeholder="Enter city, address, or zip" aria-label="Search" />
-          <button class="btn btn-cta">Search</button>
-        </form>
-        <div class="hero-stats">200+ Live assumable properties available</div>
+<!-- CTA HERO -->
+<section class="cta-hero">
+  <div class="cta-bg"></div>
+  <div class="cta-ov"></div>
+  <div class="cta-c">
+    <h2>Find your dream home<br>in the US today</h2>
+    <a href="properties.html" class="cta-btn">Find Homes with Low Rates →</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">
+    <div class="footer-av">
+      <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&crop=face" alt="Jeff">
+    </div>
+    <div class="footer-name">Luxury Division</div>
+  </div>
+  <div class="footer-cols">
+    <div class="footer-col">
+      <h4>Follow Us</h4>
+      <a href="#">Luxury Division</a>
+    </div>
+    <div class="footer-col">
+      <h4>Resources</h4>
+      <a href="#">Assume a Loan</a>
+      <a href="#">Apply to Assume</a>
+    </div>
+    <div class="footer-col">
+      <h4>Get in Touch</h4>
+      <p>(602) 332-3860</p>
+      <p>jeff@rephx.com</p>
+    </div>
+  </div>
+  <div class="footer-copy">© 2026 Luxury Division. All rights reserved.</div>
+</footer>
+
+<script>
+const BED_SVG  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20v-6a2 2 0 012-2h16a2 2 0 012 2v6M2 14V8a6 6 0 0112 0v6"/></svg>`;
+const BATH_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6H5a2 2 0 00-2 2v3h18v-3a2 2 0 00-2-2h-4M9 6V4a2 2 0 012-2h2a2 2 0 012 2v2M9 6h6M3 11v5a4 4 0 004 4h10a4 4 0 004-4v-5"/></svg>`;
+const SQFT_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>`;
+
+function formatPrice(p) {
+  return '$' + p.toLocaleString();
+}
+
+function cardHTML(l) {
+  const down = l.downPayment === '$0' ? '$0 down*' : `${l.downPayment} down`;
+  const sqft = l.sqft.toLocaleString();
+  return `<div class="lc">
+    <div class="lc-img">
+      <img src="${l.photo}" alt="${l.address}" loading="lazy">
+      <div class="lc-btns">
+        <button class="lc-btn">♡</button>
+        <button class="lc-btn">⇪</button>
+        <button class="lc-btn">💬</button>
       </div>
-    </section>
+      <div class="lc-active"><span class="lc-active-dot"></span>Active</div>
+      <div class="lc-cert">✓ Certified</div>
+    </div>
+    <div class="lc-body">
+      <div class="lc-top">
+        <div><div class="lc-rate">${l.rate} Rate</div><div class="lc-rate-old">${l.marketRate}</div></div>
+        <div><div class="lc-mo">${l.assumedMonthly} /mo</div><div class="lc-mo-old">${l.marketMonthly} /mo</div></div>
+      </div>
+      <div class="lc-price-row">
+        <span class="lc-price">${formatPrice(l.price)}</span>
+        <span class="lc-down">(${down})</span>
+        ${l.loanType ? `<span class="lc-loan">${l.loanType}</span>` : ''}
+      </div>
+      <div class="lc-meta">
+        <span>${BED_SVG}${l.beds}</span>
+        <span>${BATH_SVG}${l.baths}</span>
+        <span>${SQFT_SVG}${sqft} sqft</span>
+      </div>
+      <div class="lc-addr">${l.address}</div>
+    </div>
+  </div>`;
+}
 
-    <main>
-      <div class="container section cards" id="properties">
-        <article class="card-large">
-          <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200&q=60&auto=format&fit=crop" alt="phoenix" />
-          <div class="card-info">
-            <h3>Phoenix, Arizona</h3>
-            <p>View Properties</p>
+async function initCarousel() {
+  let data = [];
+  try {
+    const res = await fetch('./listings.json');
+    data = await res.json();
+  } catch (e) {
+    console.error('Could not load listings.json', e);
+    return;
+  }
+
+  // Only show assumable listings in the certified carousel
+  const assumable = data.filter(l => l.isAssumable);
+
+  // Need at least a few; fall back to all if very few
+  const pool = assumable.length >= 4 ? assumable : data;
+
+  // Split into two interleaved rows for visual variety
+  const row1 = pool.filter((_, i) => i % 2 === 0);
+  const row2 = pool.filter((_, i) => i % 2 === 1);
+
+  // Pad short rows so both have at least 4 cards
+  const pad = (arr) => arr.length < 4 ? [...arr, ...arr].slice(0, Math.max(4, arr.length)) : arr;
+
+  const r1el = document.getElementById('row1');
+  const r2el = document.getElementById('row2');
+  const r1 = pad(row1);
+  const r2 = pad(row2.length ? row2 : row1.slice().reverse());
+
+  // Duplicate for seamless infinite scroll
+  r1el.innerHTML = [...r1, ...r1].map(cardHTML).join('');
+  r2el.innerHTML = [...r2, ...r2].map(cardHTML).join('');
+
+}
+
+initCarousel();
+
+// ── AUTH ────────────────────────────────────────────────────────────────────
+const USERS = [{ username: 'Kamal', password: 'Test123', firstName: 'Kamal', lastName: 'Nallandighal' }];
+const SESSION_KEY = 'ld_session';
+
+function getSession() {
+  try { return JSON.parse(sessionStorage.getItem(SESSION_KEY)); } catch { return null; }
+}
+function setSession(user) { sessionStorage.setItem(SESSION_KEY, JSON.stringify(user)); }
+function clearSession() { sessionStorage.removeItem(SESSION_KEY); }
+
+function initials(user) {
+  return (user.firstName[0] + user.lastName[0]).toUpperCase();
+}
+
+function renderNav() {
+  const slot = document.getElementById('navAuthSlot');
+  const user = getSession();
+  if (user) {
+    slot.innerHTML = `
+      <div class="nav-profile" id="navProfile">
+        <div class="nav-profile-av">${initials(user)}</div>
+        <span class="nav-profile-name">${user.firstName} ${user.lastName[0]}.</span>
+        <span class="nav-profile-chevron">▾</span>
+        <div class="nav-dropdown">
+          <div class="nav-dropdown-header">
+            <div class="nav-dropdown-fullname">${user.firstName} ${user.lastName}</div>
+            <div class="nav-dropdown-user">@${user.username}</div>
           </div>
-        </article>
-        <article class="card-large">
-          <img src="https://images.unsplash.com/photo-1505691723518-36a4d86f8b5b?w=1200&q=60&auto=format&fit=crop" alt="mesa" />
-          <div class="card-info">
-            <h3>Mesa, Arizona</h3>
-            <p>View Properties</p>
-          </div>
-        </article>
-        <article class="card-large">
-          <img src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1200&q=60&auto=format&fit=crop" alt="chandler" />
-          <div class="card-info">
-            <h3>Chandler, Arizona</h3>
-            <p>View Properties</p>
-          </div>
-        </article>
-      </div>
+          <button class="nav-dropdown-item logout" id="logoutBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Sign out
+          </button>
+        </div>
+      </div>`;
+    document.getElementById('navProfile').addEventListener('click', (e) => {
+      e.currentTarget.classList.toggle('open');
+    });
+    document.getElementById('logoutBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      clearSession();
+      renderNav();
+    });
+    // Close dropdown on outside click
+    document.addEventListener('click', (e) => {
+      const p = document.getElementById('navProfile');
+      if (p && !p.contains(e.target)) p.classList.remove('open');
+    }, { once: false });
+  } else {
+    slot.innerHTML = `<button class="nav-login-btn" id="openLoginBtn">Sign In</button>`;
+    document.getElementById('openLoginBtn').addEventListener('click', openLogin);
+  }
+}
 
-      <div class="container section features">
-        <h2>What is an assumable mortgage</h2>
-        <p class="muted">An assumable mortgage allows a buyer to take over a seller's current loan, locking in a low interest rate and avoiding high closing costs.</p>
-        <div class="feature-grid">
-          <div class="feature">
-            <h4>Ultra Low Interest Rates</h4>
-            <p>Assumable loans can carry rates far below current market rates.</p>
-          </div>
-          <div class="feature">
-            <h4>Lower Closing Costs</h4>
-            <p>Assuming a loan often reduces fees and time to close.</p>
-          </div>
-          <div class="feature">
-            <h4>Thousands in Interest Paid</h4>
-            <p>Take over a lower monthly payment and keep more money in your pocket.</p>
-          </div>
-        </div>
-      </div>
+function openLogin() { document.getElementById('loginModal').classList.add('open'); }
+function closeLogin() {
+  document.getElementById('loginModal').classList.remove('open');
+  document.getElementById('loginError').style.display = 'none';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+}
 
-      <div class="container section how" id="how">
-        <h2>How it works with Luxury Division</h2>
-        <div class="steps">
-          <div class="step"><strong>1</strong><p>Get pre-screened to assume</p></div>
-          <div class="step"><strong>2</strong><p>Shop for low-rate homes</p></div>
-          <div class="step"><strong>3</strong><p>Close on your dream home</p></div>
-        </div>
-      </div>
+document.getElementById('loginClose').addEventListener('click', closeLogin);
+document.getElementById('loginModal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeLogin();
+});
+document.getElementById('loginSubmit').addEventListener('click', () => {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const match = USERS.find(x => x.username.toLowerCase() === u.toLowerCase() && x.password === p);
+  if (match) {
+    setSession(match);
+    closeLogin();
+    renderNav();
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+  }
+});
+// Allow Enter key to submit
+document.getElementById('loginPass').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('loginSubmit').click();
+});
+document.getElementById('loginUser').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('loginPass').focus();
+});
 
-      <div class="container section partners">
-        <h3>We proudly partner with UMe, the home assumption experts</h3>
-        <div class="partner-logos">
-          <img src="https://umestackprod-filess3bucket-1hr79bzelrzka.s3.amazonaws.com/public/organizations/01KCSMFCCABMW73M9NQ33D1PB0/logo" alt="UMe" />
-        </div>
-      </div>
-      
-      <div class="container section listings" id="featured">
-        <h2>The latest certified properties on the market</h2>
-        <div id="listing-preview" class="listing-grid">
-          <!-- populated by app.js -->
-        </div>
-      </div>
+renderNav();
+// ── END AUTH ─────────────────────────────────────────────────────────────────
 
-      <!-- map moved to properties.html -->
-    </main>
+// SCROLL REVEAL
+const revealEls = document.querySelectorAll('.reveal, .reveal-up, .stagger');
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+}, { threshold: 0.12 });
+revealEls.forEach(el => io.observe(el));
 
-    <footer class="site-footer" id="contact">
-      <div class="container footer-inner">
-        <div>
-          <h4>Luxury Division</h4>
-          <p>© 2026 Luxury Division. All rights reserved.</p>
-        </div>
-        <div>
-          <h4>Contact</h4>
-          <p>jeff@rephx.com</p>
-        </div>
-      </div>
-    </footer>
-    
-    <script src="app.js"></script>
-    <script async
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBYpbHXJvLttOcuypZewzIjyMko-9uSkVU&v=weekly&libraries=marker&loading=async&callback=initMap"></script>
-  </body>
+// HERO PARALLAX
+const heroBg = document.querySelector('.hero-bg');
+if (heroBg) {
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    if (y < window.innerHeight) heroBg.style.transform = `translateY(${y * 0.3}px)`;
+  }, { passive: true });
+}
+</script>
+
+</body>
 </html>

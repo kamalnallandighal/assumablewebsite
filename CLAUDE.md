@@ -1,5 +1,77 @@
 # Assumable Homes — Claude notes
 
+## Project status (as of 2026-04-17, updated same day)
+
+What is built and working (static site, run with `python3 -m http.server 8000`):
+
+- `index.html` — fully rebuilt landing page replicating assumablehomesaz.com design
+  - Top announcement bar (Jeff Salazar, Scottsdale AZ, phone)
+  - Sticky nav with Sign In / profile dropdown (see Auth below)
+  - Hero with parallax background, entry animations, pulsing green dot
+  - Region cards: Phoenix, Mesa, Chandler (hover zoom)
+  - "What is an assumable mortgage" section with SVG circular diagram
+  - Three benefit cards (%, $, savings icons — all SVG, no emoji)
+  - Dark "certified properties" section with two auto-scrolling carousels
+    - Carousels pause individually on hover (rows are independent)
+    - Data fetched live from `listings.json` — only assumable listings shown
+  - "How it works" section (ghost numbers + SVG step icons)
+  - Win-win section: Buyers / Sellers / Investors cards
+  - Agent section (Jeff Salazar, dark bg, contact pill)
+  - FAQ accordion + "Book a 15 min call" card
+  - Second CTA hero + footer
+  - Scroll-reveal animations on all major sections
+
+- `properties.html` — map page (Google Maps JS API, AdvancedMarkerElement)
+  - Filter bar: min/max price, min beds, assumable-only toggle
+  - Left sidebar: listing cards rendered from `listings.json`
+  - Map with price-pill markers (green = assumable, black = regular)
+  - Click card or marker → opens rich **Property Detail Modal** (Zillow-style overlay)
+    - Photo gallery: 5 faked images per listing, arrows + dots + counter, fade transition
+    - Header: serif price display, address, bed/bath/sqft pills, assumable badge + loan tag
+    - About section: fake description (3 rotating templates, mentions rate if assumable)
+    - Features grid: 8 deterministic fake features per listing
+    - Property Details accordion: 6 sections (Parking, Interior, Exterior, Utilities, Location, Public Facts) with fake but realistic data
+    - Payment Calculator: live slider (5–20% down), recalculates assumed vs market rate, savings banner showing monthly + 30-yr total savings
+    - Tour Scheduler: next 7 days as pills (formatted M/D), 9am–6pm in 30-min slots, confirm → success state
+    - Contact Agent button → opens existing lead capture modal
+    - Fonts: DM Serif Display (price/amounts) + DM Sans (body) via Google Fonts
+  - Leads saved to `localStorage` under key `assumableLeads`
+
+- `listings.json` — single source of truth for both pages (16 listings total)
+  - Fields: id, address, price, beds, baths, sqft, lat, lng, isAssumable, photo,
+            rate, marketRate, assumedMonthly, marketMonthly, downPayment, loanType
+  - 10 original Phoenix listings + 6 new assumable listings (Mesa, Chandler, more Phoenix)
+  - Adding fields here automatically updates both pages
+
+- `app.js` — handles map init, markers, sidebar render, filters, lead modal, `renderPreview()`
+
+- `styles.css` — styles for `properties.html` only
+  - `index.html` has all its own styles inline (to avoid coupling)
+
+## Auth system (index.html only, temporary)
+
+- Hardcoded user: username `Kamal`, password `Test123`
+- Account name: Kamal Nallandighal — avatar shows initials "KN"
+- Session stored in `sessionStorage` (clears on tab close)
+- Nav shows "Sign In" button when logged out; profile circle + dropdown when logged in
+- To add more users: extend the `USERS` array in the `<script>` block in `index.html`
+- To replace with real auth later: swap `USERS` lookup + `sessionStorage` for a fetch to an auth endpoint
+
+## UMe — intentionally excluded
+
+The original site has a "We proudly partner with UMe" section. This is excluded by design. Do not add it back without asking the user.
+
+## Open decisions / next tasks
+
+- Wire Google Maps key securely (currently exposed in HTML — fine for local dev, must proxy for production)
+- Replace `listings.json` with a live API / Supabase / MLS feed (keep same field shape)
+- Wire lead captures (`assumableLeads` in localStorage) to a CRM webhook
+- Add real user auth (replace hardcoded credentials)
+- SEO: structured data (schema.org/RealEstateListing), meta tags, analytics
+- Multilingual support: add `lang` param to Claude prompts when needed
+
+---
+
 Purpose
 - Central notes for using Claude (or other Anthropic models) with the Assumable Homes project.
 - Capture recommended prompts, use-cases, safety considerations, and integration tips for generating listing copy, meta descriptions, and social blurbs.
