@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Assumable Homes — Luxury Division</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <div class="logo">Luxury Division</div>
+        <nav class="nav">
+          <a href="properties.html">Properties</a>
+          <a href="#how">How it works</a>
+          <a href="#contact">Contact</a>
+        </nav>
+        <div class="auth">
+          <button class="btn btn-outline">Login</button>
+          <button class="btn btn-primary">List / Signup</button>
+        </div>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="hero-bg"></div>
+      <div class="container hero-content">
+        <h1>Assumable Homes for sale in Arizona</h1>
+        <p class="lead">Find properties with assumable loans and lower monthly payments.</p>
+        <form class="search">
+          <input type="text" placeholder="Enter city, address, or zip" aria-label="Search" />
+          <button class="btn btn-cta">Search</button>
+        </form>
+        <div class="hero-stats">200+ Live assumable properties available</div>
+      </div>
+    </section>
+
+    <main>
+      <div class="container section cards" id="properties">
+        <article class="card-large">
+          <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1200&q=60&auto=format&fit=crop" alt="phoenix" />
+          <div class="card-info">
+            <h3>Phoenix, Arizona</h3>
+            <p>View Properties</p>
+          </div>
+        </article>
+        <article class="card-large">
+          <img src="https://images.unsplash.com/photo-1505691723518-36a4d86f8b5b?w=1200&q=60&auto=format&fit=crop" alt="mesa" />
+          <div class="card-info">
+            <h3>Mesa, Arizona</h3>
+            <p>View Properties</p>
+          </div>
+        </article>
+        <article class="card-large">
+          <img src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1200&q=60&auto=format&fit=crop" alt="chandler" />
+          <div class="card-info">
+            <h3>Chandler, Arizona</h3>
+            <p>View Properties</p>
+          </div>
+        </article>
+      </div>
+
+      <div class="container section features">
+        <h2>What is an assumable mortgage</h2>
+        <p class="muted">An assumable mortgage allows a buyer to take over a seller's current loan, locking in a low interest rate and avoiding high closing costs.</p>
+        <div class="feature-grid">
+          <div class="feature">
+            <h4>Ultra Low Interest Rates</h4>
+            <p>Assumable loans can carry rates far below current market rates.</p>
+          </div>
+          <div class="feature">
+            <h4>Lower Closing Costs</h4>
+            <p>Assuming a loan often reduces fees and time to close.</p>
+          </div>
+          <div class="feature">
+            <h4>Thousands in Interest Paid</h4>
+            <p>Take over a lower monthly payment and keep more money in your pocket.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="container section how" id="how">
+        <h2>How it works with Luxury Division</h2>
+        <div class="steps">
+          <div class="step"><strong>1</strong><p>Get pre-screened to assume</p></div>
+          <div class="step"><strong>2</strong><p>Shop for low-rate homes</p></div>
+          <div class="step"><strong>3</strong><p>Close on your dream home</p></div>
+        </div>
+      </div>
+
+      <div class="container section partners">
+        <h3>We proudly partner with UMe, the home assumption experts</h3>
+        <div class="partner-logos">
+          <img src="https://umestackprod-filess3bucket-1hr79bzelrzka.s3.amazonaws.com/public/organizations/01KCSMFCCABMW73M9NQ33D1PB0/logo" alt="UMe" />
+        </div>
+      </div>
+      
+      <div class="container section listings" id="featured">
+        <h2>The latest certified properties on the market</h2>
+        <div id="listing-preview" class="listing-grid">
+          <!-- populated by app.js -->
+        </div>
+      </div>
+
+      <!-- map moved to properties.html -->
+    </main>
+
+    <footer class="site-footer" id="contact">
+      <div class="container footer-inner">
+        <div>
+          <h4>Luxury Division</h4>
+          <p>© 2026 Luxury Division. All rights reserved.</p>
+        </div>
+        <div>
+          <h4>Contact</h4>
+          <p>jeff@rephx.com</p>
+        </div>
+      </div>
+    </footer>
+    
+    <script src="app.js"></script>
+    <script async
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBYpbHXJvLttOcuypZewzIjyMko-9uSkVU&v=weekly&libraries=marker&loading=async&callback=initMap"></script>
+  </body>
+</html>

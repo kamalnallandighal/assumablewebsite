@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Properties — Assumable Homes</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <div class="logo">Luxury Division</div>
+        <nav class="nav">
+          <a href="index.html">Home</a>
+          <a href="#">Properties</a>
+        </nav>
+      </div>
+    </header>
+
+    <section class="map-area page-container">
+      <header class="filter-bar">
+        <div class="brand">Assumable Homes</div>
+        <div class="filters">
+          <label class="field">
+            <span>Min price</span>
+            <input id="minPrice" type="number" placeholder="Any" min="0" step="25000" />
+          </label>
+          <label class="field">
+            <span>Max price</span>
+            <input id="maxPrice" type="number" placeholder="Any" min="0" step="25000" />
+          </label>
+          <label class="field">
+            <span>Min beds</span>
+            <select id="minBeds">
+              <option value="0">Any</option>
+              <option value="1">1+</option>
+              <option value="2">2+</option>
+              <option value="3">3+</option>
+              <option value="4">4+</option>
+            </select>
+          </label>
+          <label class="toggle">
+            <input id="assumableOnly" type="checkbox" />
+            <span>Assumable only</span>
+          </label>
+          <span class="count" id="resultCount"></span>
+        </div>
+      </header>
+
+      <main class="layout">
+        <aside class="sidebar" id="sidebar"></aside>
+        <section class="map-wrap"><div id="map"></div></section>
+      </main>
+    </section>
+      <!-- Lead capture modal -->
+      <div id="leadModal" class="modal" aria-hidden="true">
+        <div class="modal-content">
+          <button class="modal-close" id="leadModalClose">✕</button>
+          <h3>Contact about this property</h3>
+          <div id="leadListingInfo" style="margin-bottom:8px;color:#333;font-size:14px;"></div>
+          <form id="leadForm">
+            <label>Name<div><input name="name" required /></div></label>
+            <label>Email<div><input name="email" type="email" required /></div></label>
+            <label>Phone<div><input name="phone" /></div></label>
+            <label>Message<div><textarea name="message" rows="3" placeholder="Optional message"></textarea></div></label>
+            <input type="hidden" name="listingId" />
+            <div style="margin-top:12px;display:flex;gap:8px;">
+              <button class="btn btn-primary" type="submit">Send</button>
+              <button class="btn btn-outline" type="button" id="leadCancel">Cancel</button>
+            </div>
+          </form>
+          <div id="leadSuccess" style="display:none;margin-top:10px;color:green;">Thanks — lead saved locally. We'll send it to your CRM later.</div>
+        </div>
+      </div>
+
+      <script src="app.js"></script>
+      <script async
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBYpbHXJvLttOcuypZewzIjyMko-9uSkVU&v=weekly&libraries=marker&loading=async&callback=initMap"></script>
+  </body>
+</html>

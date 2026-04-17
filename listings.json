@@ -1,0 +1,122 @@
+[
+  {
+    "id": "1",
+    "address": "1820 N Central Ave, Phoenix, AZ 85004",
+    "price": 385000,
+    "beds": 2,
+    "baths": 2,
+    "sqft": 1150,
+    "lat": 33.4640,
+    "lng": -112.0740,
+    "isAssumable": true,
+    "photo": "https://picsum.photos/seed/phx1/400/300"
+  },
+  {
+    "id": "2",
+    "address": "4725 E Camelback Rd, Phoenix, AZ 85018",
+    "price": 1250000,
+    "beds": 4,
+    "baths": 3,
+    "sqft": 2650,
+    "lat": 33.5090,
+    "lng": -111.9820,
+    "isAssumable": false,
+    "photo": "https://picsum.photos/seed/phx2/400/300"
+  },
+  {
+    "id": "3",
+    "address": "3102 N 7th St, Phoenix, AZ 85014",
+    "price": 495000,
+    "beds": 3,
+    "baths": 2,
+    "sqft": 1480,
+    "lat": 33.4820,
+    "lng": -112.0660,
+    "isAssumable": true,
+    "photo": "https://picsum.photos/seed/phx3/400/300"
+  },
+  {
+    "id": "4",
+    "address": "2510 E Osborn Rd, Phoenix, AZ 85016",
+    "price": 825000,
+    "beds": 3,
+    "baths": 2,
+    "sqft": 1950,
+    "lat": 33.4960,
+    "lng": -112.0250,
+    "isAssumable": false,
+    "photo": "https://picsum.photos/seed/phx4/400/300"
+  },
+  {
+    "id": "5",
+    "address": "6040 N 16th St, Phoenix, AZ 85016",
+    "price": 685000,
+    "beds": 4,
+    "baths": 2,
+    "sqft": 2100,
+    "lat": 33.5230,
+    "lng": -112.0470,
+    "isAssumable": true,
+    "photo": "https://picsum.photos/seed/phx5/400/300"
+  },
+  {
+    "id": "6",
+    "address": "1115 W Roosevelt St, Phoenix, AZ 85007",
+    "price": 365000,
+    "beds": 1,
+    "baths": 1,
+    "sqft": 820,
+    "lat": 33.4590,
+    "lng": -112.0850,
+    "isAssumable": true,
+    "photo": "https://picsum.photos/seed/phx6/400/300"
+  },
+  {
+    "id": "7",
+    "address": "4420 E Indian School Rd, Phoenix, AZ 85018",
+    "price": 745000,
+    "beds": 3,
+    "baths": 2,
+    "sqft": 1780,
+    "lat": 33.4950,
+    "lng": -111.9920,
+    "isAssumable": false,
+    "photo": "https://picsum.photos/seed/phx7/400/300"
+  },
+  {
+    "id": "8",
+    "address": "1205 E Coronado Rd, Phoenix, AZ 85006",
+    "price": 525000,
+    "beds": 3,
+    "baths": 2,
+    "sqft": 1550,
+    "lat": 33.4620,
+    "lng": -112.0580,
+    "isAssumable": true,
+    "photo": "https://picsum.photos/seed/phx8/400/300"
+  },
+  {
+    "id": "9",
+    "address": "3801 E Bell Rd, Phoenix, AZ 85032",
+    "price": 450000,
+    "beds": 4,
+    "baths": 2,
+    "sqft": 2200,
+    "lat": 33.6360,
+    "lng": -111.9930,
+    "isAssumable": false,
+    "photo": "https://picsum.photos/seed/phx9/400/300"
+  },
+  {
+    "id": "10",
+    "address": "4816 S 16th St, Phoenix, AZ 85040",
+    "price": 315000,
+    "beds": 3,
+    "baths": 2,
+    "sqft": 1400,
+    "lat": 33.4090,
+    "lng": -112.0470,
+    "isAssumable": false,
+    "photo": "https://picsum.photos/seed/phx10/400/300"
+  }
+]
