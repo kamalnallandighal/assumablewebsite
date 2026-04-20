@@ -3,26 +3,118 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Properties — Assumable Homes</title>
+    <title>Property Search — Luxury Division</title>
     <link rel="stylesheet" href="styles.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=DM+Serif+Display&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --amber: #d97706;
+        --dark: #111111;
+        --dark2: #1c1c1c;
+        --forest: #0a6b3e;
+        --cream: #f8f5f0;
+        --border: #e5e5e5;
+        --text: #1a1a1a;
+        --serif: 'Cormorant Garamond', Georgia, serif;
+        --sans: 'DM Sans', -apple-system, sans-serif;
+      }
+      /* TOP BAR */
+      .topbar {
+        background: var(--dark2); color: #fff;
+        padding: 9px 32px; display: flex; align-items: center; gap: 12px; font-size: 13px;
+        font-family: var(--sans);
+      }
+      .topbar-av { width: 26px; height: 26px; border-radius: 50%; overflow: hidden; flex-shrink: 0; }
+      .topbar-av img { width: 100%; height: 100%; object-fit: cover; }
+      .topbar-phone {
+        border: 1px solid rgba(255,255,255,.28); border-radius: 20px;
+        padding: 3px 13px; font-size: 12px; font-weight: 500;
+      }
+      /* NAV */
+      .lux-nav {
+        background: rgba(255,255,255,.96); backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        position: sticky; top: 0; z-index: 200;
+        display: flex; align-items: center; padding: 0 40px; height: 68px; gap: 32px;
+        border-bottom: 1px solid rgba(0,0,0,.06);
+        font-family: var(--sans);
+      }
+      .lux-nav-logo {
+        font-family: var(--sans); font-size: 13px; font-weight: 400;
+        letter-spacing: .22em; text-transform: uppercase;
+        color: var(--dark); line-height: 1.55; white-space: nowrap;
+        text-decoration: none;
+      }
+      .lux-nav-links { display: flex; gap: 28px; list-style: none; margin: 0; position: absolute; left: 50%; transform: translateX(-50%); }
+      .lux-nav-links a {
+        text-decoration: none; color: var(--text); font-size: 14px; font-weight: 500; transition: color .2s;
+      }
+      .lux-nav-links a:hover, .lux-nav-links a.active { color: var(--forest); }
+      .lux-nav-browse-btn {
+        background: var(--dark); color: #fff; border: none; border-radius: 8px;
+        padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer;
+        font-family: var(--sans); transition: background .2s; white-space: nowrap;
+        text-decoration: none; display: inline-block;
+      }
+      .lux-nav-browse-btn:hover { background: #333; }
+      /* AUTH */
+      .nav-login-btn { background: var(--dark); color: #fff; border: none; border-radius: 8px; padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--sans); transition: background .2s; }
+      .nav-login-btn:hover { background: #333; }
+      .nav-profile { position: relative; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+      .nav-profile-av { width: 36px; height: 36px; border-radius: 50%; background: var(--dark); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+      .nav-profile-name { font-size: 14px; font-weight: 500; color: var(--text); }
+      .nav-profile-chevron { font-size: 10px; color: #888; transition: transform .2s; }
+      .nav-profile.open .nav-profile-chevron { transform: rotate(180deg); }
+      .nav-dropdown { position: absolute; top: calc(100% + 10px); right: 0; background: #fff; border: 1px solid #e5e5e5; border-radius: 14px; min-width: 200px; box-shadow: 0 8px 32px rgba(0,0,0,.12); overflow: hidden; display: none; z-index: 300; }
+      .nav-profile.open .nav-dropdown { display: block; }
+      .nav-dropdown-header { padding: 16px 18px 12px; border-bottom: 1px solid #f0f0f0; }
+      .nav-dropdown-fullname { font-size: 14px; font-weight: 600; color: #222; margin-bottom: 2px; }
+      .nav-dropdown-user { font-size: 12px; color: #999; }
+      .nav-dropdown-item { display: flex; align-items: center; gap: 10px; padding: 12px 18px; font-size: 14px; color: #333; cursor: pointer; transition: background .15s; border: none; background: none; width: 100%; font-family: var(--sans); text-align: left; }
+      .nav-dropdown-item:hover { background: #f8f8f8; }
+      .nav-dropdown-item.logout { color: #e53e3e; }
+      /* LOGIN MODAL */
+      .login-modal { position: fixed; inset: 0; z-index: 1000; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.5); backdrop-filter: blur(4px); }
+      .login-modal.open { display: flex; }
+      .login-box { background: #fff; border-radius: 22px; padding: 40px 36px; width: 100%; max-width: 400px; box-shadow: 0 24px 80px rgba(0,0,0,.2); position: relative; }
+      .login-box h2 { font-family: var(--serif); font-size: 26px; font-weight: 500; margin-bottom: 6px; }
+      .login-box .sub { font-size: 14px; color: #999; margin-bottom: 28px; }
+      .login-close { position: absolute; top: 16px; right: 18px; background: #f5f5f5; border: none; border-radius: 50%; width: 30px; height: 30px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #666; }
+      .login-field { margin-bottom: 16px; }
+      .login-field label { display: block; font-size: 11px; font-weight: 700; color: #888; margin-bottom: 6px; letter-spacing: .06em; text-transform: uppercase; }
+      .login-field input { width: 100%; border: 1.5px solid #e5e5e5; border-radius: 10px; padding: 12px 14px; font-size: 15px; font-family: var(--sans); outline: none; transition: border-color .2s; color: #222; }
+      .login-field input:focus { border-color: var(--dark); }
+      .login-error { font-size: 13px; color: #e53e3e; margin-bottom: 14px; display: none; }
+      .login-submit { width: 100%; background: var(--dark); color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: var(--sans); transition: background .2s; margin-top: 4px; }
+      .login-submit:hover { background: #333; }
+    </style>
   </head>
   <body>
-    <header class="site-header">
-      <div class="container header-inner">
-        <div class="logo">Luxury Division</div>
-        <nav class="nav">
-          <a href="index.html">Home</a>
-          <a href="#">Properties</a>
-        </nav>
-      </div>
-    </header>
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-av">
+      <img src="jeff.jpeg" alt="Jeff Salazar">
+    </div>
+    <span>Jeff Salazar — Scottsdale, AZ</span>
+    <span class="topbar-phone">(602) 332-3860</span>
+  </div>
+
+  <!-- NAV -->
+  <nav class="lux-nav">
+    <a href="index.html" class="lux-nav-logo">Luxury<br>Division</a>
+    <ul class="lux-nav-links">
+      <li><a href="properties.html" class="active">Property Search</a></li>
+      <li><a href="index.html#how">How It Works</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
+    </ul>
+  </nav>
+
 
     <section class="map-area page-container">
       <header class="filter-bar">
-        <div class="brand">Assumable Homes</div>
         <div class="filters">
           <label class="field">
             <span>Min price</span>

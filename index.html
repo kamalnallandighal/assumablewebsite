@@ -54,10 +54,11 @@
       border-bottom: 1px solid rgba(0,0,0,.06);
     }
     .nav-logo {
-      font-family: var(--serif); font-size: 17px; font-weight: 600;
-      color: var(--dark); line-height: 1.2; white-space: nowrap;
+      font-family: var(--sans); font-size: 13px; font-weight: 400;
+      letter-spacing: .22em; text-transform: uppercase;
+      color: var(--dark); line-height: 1.55; white-space: nowrap;
     }
-    .nav-links { display: flex; gap: 28px; list-style: none; margin: 0 auto; }
+    .nav-links { display: flex; gap: 28px; list-style: none; margin: 0; position: absolute; left: 50%; transform: translateX(-50%); }
     .nav-links a {
       text-decoration: none; color: var(--text); font-size: 14px; font-weight: 500; transition: color .2s;
     }
@@ -238,14 +239,33 @@
     .how-header { text-align: center; margin-bottom: 80px; }
     .how-sec h2 { font-family: var(--serif); font-size: clamp(32px, 5vw, 56px); font-weight: 500; color: var(--dark); letter-spacing: -.01em; }
     .how-sec h2 .dim { color: #ccc; font-weight: 300; font-style: italic; }
-    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; max-width: 1000px; margin: 0 auto; align-items: start; position: relative; }
-    .steps::before { content: ''; position: absolute; top: 54px; left: calc(33.33% + 14px); right: calc(33.33% + 14px); height: 1px; background: var(--border); pointer-events: none; }
-    .step { position: relative; }
-    .step-num { font-family: var(--serif); font-size: 100px; font-weight: 300; color: rgba(0,0,0,.055); line-height: 1; margin-bottom: -26px; user-select: none; letter-spacing: -.04em; }
-    .step-icon { width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid #d5d5d5; display: flex; align-items: center; justify-content: center; color: var(--forest); margin-bottom: 22px; background: #fff; position: relative; z-index: 1; }
-    .step-icon svg { width: 18px; height: 18px; }
-    .step h3 { font-family: var(--serif); font-size: 26px; font-weight: 500; margin-bottom: 14px; line-height: 1.2; color: var(--dark); }
-    .step p { font-size: 14px; line-height: 1.78; color: var(--muted); margin-bottom: 18px; }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; }
+    .step {
+      background: #fff; border: 1px solid var(--border); border-radius: 24px;
+      padding: 36px 32px 32px; position: relative; overflow: hidden;
+      transition: transform .28s ease, box-shadow .28s ease;
+    }
+    .step:hover { transform: translateY(-6px); box-shadow: 0 28px 64px rgba(0,0,0,.09); }
+    .step::after {
+      content: ''; position: absolute; top: 0; left: 32px; right: 32px;
+      height: 2px; background: var(--forest); border-radius: 0 0 3px 3px;
+      transform: scaleX(0); transform-origin: left; transition: transform .3s ease;
+    }
+    .step:hover::after { transform: scaleX(1); }
+    .step-num {
+      position: absolute; top: 18px; right: 24px;
+      font-family: var(--serif); font-size: 88px; font-weight: 300;
+      color: rgba(0,0,0,.045); line-height: 1; letter-spacing: -.04em;
+      user-select: none; pointer-events: none;
+    }
+    .step-icon {
+      width: 52px; height: 52px; border-radius: 14px;
+      background: var(--forest-light); display: flex; align-items: center;
+      justify-content: center; color: var(--forest); margin-bottom: 24px;
+    }
+    .step-icon svg { width: 22px; height: 22px; }
+    .step h3 { font-family: var(--serif); font-size: 24px; font-weight: 500; margin-bottom: 12px; line-height: 1.25; color: var(--dark); }
+    .step p { font-size: 14px; line-height: 1.78; color: var(--muted); margin-bottom: 20px; }
     .step-cta { font-size: 13px; color: var(--forest); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; transition: gap .2s; }
     .step-cta:hover { gap: 8px; }
 
@@ -374,7 +394,7 @@
 <!-- TOP BAR -->
 <div class="topbar">
   <div class="topbar-av">
-    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=56&h=56&fit=crop&crop=face" alt="">
+    <img src="jeff.jpeg" alt="Jeff Salazar">
   </div>
   <span>Jeff Salazar — Scottsdale, AZ</span>
   <span class="topbar-phone">(602) 332-3860</span>
@@ -388,8 +408,6 @@
     <li><a href="#how">How It Works</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
-  <a href="properties.html" class="nav-browse-btn">Browse Listings</a>
-  <div id="navAuthSlot"></div>
 </nav>
 
 <!-- LOGIN MODAL -->
@@ -460,7 +478,7 @@
       </div>
     </a>
     <a href="properties.html" class="region-card" style="text-decoration:none">
-      <img src="https://images.unsplash.com/photo-1505691723518-36a4d86f8b5b?w=800&q=80&auto=format&fit=crop" alt="Mesa">
+      <img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=800&q=80&auto=format&fit=crop" alt="Mesa">
       <div class="region-ov"></div>
       <div class="region-info">
         <div class="region-count">180+ properties</div>
@@ -469,7 +487,7 @@
       </div>
     </a>
     <a href="properties.html" class="region-card" style="text-decoration:none">
-      <img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80&auto=format&fit=crop" alt="Chandler">
+      <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80&auto=format&fit=crop" alt="Chandler">
       <div class="region-ov"></div>
       <div class="region-info">
         <div class="region-count">240+ properties</div>
@@ -611,7 +629,7 @@
 <!-- AGENT -->
 <section class="agent-sec">
   <div class="agent-photo reveal">
-    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=240&h=240&fit=crop&crop=face" alt="Jeff Salazar">
+    <img src="jeff.jpeg" alt="Jeff Salazar">
   </div>
   <div class="eyebrow" style="color:var(--forest);margin-bottom:16px">Your Expert Agent</div>
   <h2>Jeff Salazar — <em>Arizona's certified</em><br>assumption specialist</h2>
@@ -688,7 +706,7 @@
     <div class="faq-right">
       <div class="call-card">
         <div class="call-photo">
-          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=160&h=160&fit=crop&crop=face" alt="Jeff">
+          <img src="jeff.jpeg" alt="Jeff Salazar">
         </div>
         <h3>Book a 15 minute intro call</h3>
         <p>Free consultation with Jeff. No commitment required.</p>
@@ -835,6 +853,7 @@ function initials(user) { return (user.firstName[0] + user.lastName[0]).toUpperC
 
 function renderNav() {
   const slot = document.getElementById('navAuthSlot');
+  if (!slot) return;
   const user = getSession();
   if (user) {
     slot.innerHTML = `
