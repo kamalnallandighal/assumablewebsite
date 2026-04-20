@@ -18,7 +18,7 @@
       --cream: #f8f5f0;
       --border: #e5e5e5;
       --text: #1a1a1a;
-      --muted: #777;
+      --muted: #666;
       --serif: 'Cormorant Garamond', Georgia, serif;
       --sans: 'DM Sans', -apple-system, sans-serif;
     }
@@ -243,7 +243,7 @@
     .step {
       background: #fff; border: 1px solid var(--border); border-radius: 24px;
       padding: 36px 32px 32px; position: relative; overflow: hidden;
-      transition: transform .28s ease, box-shadow .28s ease;
+      transition: transform .28s ease, box-shadow .28s ease; cursor: default;
     }
     .step:hover { transform: translateY(-6px); box-shadow: 0 28px 64px rgba(0,0,0,.09); }
     .step::after {
@@ -274,7 +274,7 @@
     .winwin-header { text-align: center; margin-bottom: 56px; }
     .winwin-sec h2 { font-family: var(--serif); font-size: clamp(30px, 4.5vw, 52px); font-weight: 500; color: var(--dark); letter-spacing: -.01em; }
     .winwin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 1100px; margin: 0 auto; }
-    .ww { background: #fff; border: 1px solid var(--border); border-radius: 20px; overflow: hidden; transition: transform .25s ease, box-shadow .25s ease; }
+    .ww { background: #fff; border: 1px solid var(--border); border-radius: 20px; overflow: hidden; transition: transform .25s ease, box-shadow .25s ease; cursor: default; }
     .ww:hover { transform: translateY(-6px); box-shadow: 0 20px 56px rgba(0,0,0,.1); }
     .ww-img { position: relative; height: 264px; }
     .ww-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
