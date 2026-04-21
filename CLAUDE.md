@@ -1,27 +1,28 @@
 # Assumable Homes — Claude notes
 
-## Project status (as of 2026-04-17, updated same day)
+## Project status (as of 2026-04-20, updated same day)
 
-What is built and working (static site, run with `python3 -m http.server 8000`):
+Deployed to Vercel via GitHub (`kamalnallandighal/assumablewebsite`). Static site, also runs locally with `python3 -m http.server 8000`.
 
-- `index.html` — fully rebuilt landing page replicating assumablehomesaz.com design
-  - Top announcement bar (Jeff Salazar, Scottsdale AZ, phone)
-  - Sticky nav with Sign In / profile dropdown (see Auth below)
+- `index.html` — landing page
+  - Top announcement bar (Jeff Salazar photo from `jeff.jpeg`, Scottsdale AZ, phone)
+  - Sticky nav: "LUXURY DIVISION" logo (DM Sans, uppercase, tracked), centered links (Property Search / How It Works / Contact). No Browse Listings or Sign In buttons in nav — auth code present but slot removed.
   - Hero with parallax background, entry animations, pulsing green dot
-  - Region cards: Phoenix, Mesa, Chandler (hover zoom)
-  - "What is an assumable mortgage" section with SVG circular diagram
-  - Three benefit cards (%, $, savings icons — all SVG, no emoji)
+  - Region cards: Phoenix (exterior), Mesa (interior), Chandler (interior) — hover zoom
+  - "What is an assumable mortgage" section with rate comparison strip + benefit cards
   - Dark "certified properties" section with two auto-scrolling carousels
-    - Carousels pause individually on hover (rows are independent)
     - Data fetched live from `listings.json` — only assumable listings shown
-  - "How it works" section (ghost numbers + SVG step icons)
+  - "How it works" section — 3 bordered cards, ghost serif number top-right of each card, green rounded-square icon, hover lift + green top-bar animation
   - Win-win section: Buyers / Sellers / Investors cards
-  - Agent section (Jeff Salazar, dark bg, contact pill)
-  - FAQ accordion + "Book a 15 min call" card
+  - Agent section (Jeff Salazar via `jeff.jpeg`, `object-position: center top` to avoid hair crop)
+  - FAQ accordion + "Book a 15 min call" card (also uses `jeff.jpeg`)
   - Second CTA hero + footer
   - Scroll-reveal animations on all major sections
+  - `--muted: #666` (5.74:1 contrast, WCAG AA)
 
 - `properties.html` — map page (Google Maps JS API, AdvancedMarkerElement)
+  - Same topbar + nav as index.html (Luxury Division logo, centered links, no auth buttons)
+  - Page is fully viewport-locked — no page scroll; only the left sidebar scrolls
   - Filter bar: min/max price, min beds, assumable-only toggle
   - Left sidebar: listing cards rendered from `listings.json`
   - Map with price-pill markers (green = assumable, black = regular)
@@ -48,13 +49,13 @@ What is built and working (static site, run with `python3 -m http.server 8000`):
 - `styles.css` — styles for `properties.html` only
   - `index.html` has all its own styles inline (to avoid coupling)
 
-## Auth system (index.html only, temporary)
+## Auth system (dormant — code present, UI removed)
 
-- Hardcoded user: username `Kamal`, password `Test123`
-- Account name: Kamal Nallandighal — avatar shows initials "KN"
-- Session stored in `sessionStorage` (clears on tab close)
-- Nav shows "Sign In" button when logged out; profile circle + dropdown when logged in
-- To add more users: extend the `USERS` array in the `<script>` block in `index.html`
+- Auth JS is still in `index.html` but the `#navAuthSlot` div was removed from the nav, so no Sign In button is shown
+- `renderNav()` is guarded with an early return if the slot doesn't exist — no errors
+- Hardcoded user: username `Kamal`, password `Test123`, name Kamal Nallandighal
+- Session stored in `sessionStorage`
+- To re-enable: add `<div id="navAuthSlot"></div>` back into the nav in `index.html`
 - To replace with real auth later: swap `USERS` lookup + `sessionStorage` for a fetch to an auth endpoint
 
 ## UMe — intentionally excluded
