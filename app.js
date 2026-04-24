@@ -6,7 +6,8 @@ let map;
 let infoWindow;
 let listings = [];
 const markers = new Map();
-const filterState = { minPrice: null, maxPrice: null, minBeds: 0, assumableOnly: false };
+// Default: show only assumable listings (matching new design)
+const filterState = { minPrice: null, maxPrice: null, minBeds: 0, assumableOnly: true };
 
 async function loadListings() {
   const res = await fetch('./listings.json');
@@ -71,10 +72,13 @@ window.initMap = initMap;
 
 function renderMarkers(AdvancedMarkerElement) {
   for (const l of listings) {
+    const dotClass = l.loanType === 'VA' ? 'price-pill-dot price-pill-dot-va' : 'price-pill-dot price-pill-dot-fha';
+    const dot = el('span', { class: dotClass });
+    const text = document.createTextNode(formatPrice(l.price));
     const pill = el('div', {
       class: 'price-pill' + (l.isAssumable ? ' assumable' : ''),
-      text: formatPrice(l.price),
-    });
+    }, [dot]);
+    pill.appendChild(text);
 
     const marker = new AdvancedMarkerElement({
       map,
@@ -87,27 +91,50 @@ function renderMarkers(AdvancedMarkerElement) {
   }
 }
 
-function buildListingCard(l, { forInfoWindow = false } = {}) {
-  const children = [];
-  if (l.photo) children.push(el('img', { src: l.photo, alt: '' }));
-  const bodyChildren = [];
-  if (forInfoWindow) {
-    bodyChildren.push(el('div', { class: 'iw-price', text: formatFullPrice(l.price) }));
-    bodyChildren.push(el('div', { class: 'iw-addr', text: l.address }));
-    bodyChildren.push(el('div', { class: 'iw-meta', text: `${l.beds} bd · ${l.baths} ba · ${l.sqft.toLocaleString()} sqft` }));
-    if (l.isAssumable) bodyChildren.push(el('div', { class: 'assumable-chip', text: 'Assumable loan' }));
-    // contact button for info window
-    const contactBtn = el('button', { class: 'btn btn-outline iw-contact', text: 'Contact about this property' });
-    contactBtn.addEventListener('click', () => openLeadModal(l));
-    bodyChildren.push(contactBtn);
-    return el('div', { class: 'iw' }, [...children, ...bodyChildren]);
+function buildListingCard(l) {
+  const assumed = parseMoney(l.assumedMonthly);
+  const market  = parseMoney(l.marketMonthly);
+  const savings = market - assumed;
+  const tagClass = l.loanType === 'VA' ? 'card-tag card-tag-va' : 'card-tag card-tag-fha';
+
+  // Image
+  const imgWrap = el('div', { style: 'position:relative' });
+  if (l.photo) {
+    const img = el('img', { src: l.photo, alt: '' });
+    imgWrap.appendChild(img);
   }
-  bodyChildren.push(el('div', { class: 'card-price', text: formatFullPrice(l.price) }));
-  bodyChildren.push(el('div', { class: 'card-addr', title: l.address, text: l.address }));
-  bodyChildren.push(el('div', { class: 'card-meta', text: `${l.beds} bd · ${l.baths} ba · ${l.sqft.toLocaleString()} sqft` }));
-  if (l.isAssumable) bodyChildren.push(el('div', { class: 'assumable-chip', text: 'Assumable' }));
-  const body = el('div', { class: 'card-body' }, bodyChildren);
-  return el('div', { class: 'card', dataset: { id: l.id } }, [...children, body]);
+  if (l.isAssumable && l.loanType) {
+    const tagRow = el('div', { style: 'position:absolute;top:10px;left:10px;display:flex;gap:5px' });
+    tagRow.appendChild(el('span', { class: tagClass, text: `${l.loanType} · ${l.rate}` }));
+    imgWrap.appendChild(tagRow);
+  }
+
+  // Body
+  const priceRow = el('div', { style: 'display:flex;justify-content:space-between;align-items:baseline' });
+  priceRow.appendChild(el('span', { class: 'card-price', text: formatPrice(l.price) }));
+  if (savings > 0) {
+    priceRow.appendChild(el('span', { class: 'card-savings', text: `Save $${savings.toLocaleString()}/mo` }));
+  } else {
+    priceRow.appendChild(el('span', { class: 'card-monthly', text: l.assumedMonthly || '' }));
+  }
+
+  const addrEl = el('div', { class: 'card-addr', title: l.address });
+  const parts = l.address.split(',');
+  addrEl.textContent = parts[0];
+  const cityEl = el('div', { class: 'card-city', text: parts.slice(1).join(',').trim() });
+  const metaEl = el('div', { class: 'card-meta' });
+  metaEl.innerHTML = `<span>${l.beds} bd</span><span>·</span><span>${l.baths} ba</span><span>·</span><span>${l.sqft.toLocaleString()} sqft</span>`;
+
+  const monthlyRow = el('div', { style: 'margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:13px' });
+  if (l.isAssumable && assumed) {
+    monthlyRow.innerHTML = `<strong>${l.assumedMonthly}/mo</strong> <span style="color:var(--muted-2)">at ${l.rate}</span>`;
+  } else {
+    monthlyRow.innerHTML = `<span style="color:var(--muted-2)">${l.marketMonthly || formatFullPrice(l.price)}</span>`;
+  }
+
+  const body = el('div', { class: 'card-body' }, [priceRow, addrEl, cityEl, metaEl, monthlyRow]);
+  const card = el('div', { class: 'card', dataset: { id: l.id } }, [imgWrap, body]);
+  return card;
 }
 
 /* Lead modal handling (stores leads locally until a CRM webhook is provided) */
@@ -164,14 +191,26 @@ function render() {
   const visibleIds = new Set(visible.map(l => l.id));
   for (const [id, m] of markers) m.map = visibleIds.has(id) ? map : null;
   renderSidebar(visible);
+
   const countEl = document.getElementById('resultCount');
-  countEl.textContent = `${visible.length} of ${listings.length} home${listings.length === 1 ? '' : 's'}`;
+  if (countEl) countEl.textContent = `${visible.length} home${visible.length === 1 ? '' : 's'}`;
+
+  // Update secondary row count
+  const secEl = document.getElementById('secondary-count');
+  if (secEl) {
+    const assumableCount = visible.filter(l => l.isAssumable).length;
+    const minRate = visible.filter(l => l.isAssumable && l.rate)
+      .map(l => parseFloat(l.rate))
+      .filter(r => !isNaN(r))
+      .sort((a, b) => a - b)[0];
+    secEl.innerHTML = `<strong style="font-weight:600">${visible.length} homes</strong><span style="color:var(--a-muted-2)"> · ${assumableCount} assumable${minRate ? ` · Rates from ${minRate}%` : ''}</span>`;
+  }
 }
 
 function renderSidebar(visible) {
   const sidebar = document.getElementById('sidebar');
   if (!visible.length) {
-    sidebar.replaceChildren(el('div', { class: 'empty', text: 'No listings match your filters.' }));
+    sidebar.replaceChildren(el('div', { style: 'padding:20px;font-size:14px;color:var(--muted-2);text-align:center', text: 'No listings match your filters.' }));
     return;
   }
   const cards = visible.map(l => {
@@ -182,7 +221,25 @@ function renderSidebar(visible) {
     });
     return card;
   });
-  sidebar.replaceChildren(...cards);
+
+  // Insert off-market teaser after 6th card
+  const teaser = buildOffMarketTeaser();
+  const children = [...cards];
+  if (children.length > 6) children.splice(6, 0, teaser);
+  else children.push(teaser);
+
+  sidebar.replaceChildren(...children);
+}
+
+function buildOffMarketTeaser() {
+  const div = el('div', { class: 'offmarket-teaser' });
+  div.innerHTML = `
+    <div class="offmarket-teaser-eyebrow">Off-market</div>
+    <div class="offmarket-teaser-h">47 more homes match your filters</div>
+    <div class="offmarket-teaser-sub">Pocket listings and pre-MLS inventory. Get them emailed to you.</div>
+    <a href="index.html#off-market" class="offmarket-teaser-btn">Unlock off-market list</a>
+  `;
+  return div;
 }
 
 function wireFilters() {
@@ -190,17 +247,21 @@ function wireFilters() {
   const max = document.getElementById('maxPrice');
   const beds = document.getElementById('minBeds');
   const assume = document.getElementById('assumableOnly');
+
+  // Sync checkbox to default state
+  if (assume) assume.checked = filterState.assumableOnly;
+
   const update = () => {
-    filterState.minPrice = min.value ? Number(min.value) : null;
-    filterState.maxPrice = max.value ? Number(max.value) : null;
-    filterState.minBeds = Number(beds.value) || 0;
-    filterState.assumableOnly = assume.checked;
+    if (min) filterState.minPrice = min.value ? Number(min.value) : null;
+    if (max) filterState.maxPrice = max.value ? Number(max.value) : null;
+    if (beds) filterState.minBeds = Number(beds.value) || 0;
+    if (assume) filterState.assumableOnly = assume.checked;
     render();
   };
-  min.addEventListener('input', update);
-  max.addEventListener('input', update);
-  beds.addEventListener('change', update);
-  assume.addEventListener('change', update);
+  min?.addEventListener('input', update);
+  max?.addEventListener('input', update);
+  beds?.addEventListener('change', update);
+  assume?.addEventListener('change', update);
 }
 
 // Render a compact preview of listings on the landing page (if present)

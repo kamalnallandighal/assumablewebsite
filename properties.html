@@ -7,140 +7,206 @@
     <link rel="stylesheet" href="styles.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=DM+Serif+Display&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400;1,8..60,600&display=swap" rel="stylesheet">
     <style>
+      /* ── Design tokens (Assumable redesign) ── */
       :root {
-        --amber: #d97706;
-        --dark: #111111;
-        --dark2: #1c1c1c;
-        --forest: #0a6b3e;
-        --cream: #f8f5f0;
-        --border: #e5e5e5;
-        --text: #1a1a1a;
-        --serif: 'Cormorant Garamond', Georgia, serif;
-        --sans: 'DM Sans', -apple-system, sans-serif;
+        --a-ink:        #0F1623;
+        --a-ink-2:      #1B2236;
+        --a-navy:       #2B4072;
+        --a-cream:      #F4F3F2;
+        --a-paper:      #FFFFFF;
+        --a-line:       #E5E3E1;
+        --a-line-2:     #D4D1CE;
+        --a-muted:      #868686;
+        --a-muted-2:    #5E5E5E;
+        --a-terra:      #D35932;
+        --a-terra-soft: #FDD8CC;
+        --a-terra-ink:  #631800;
+        --a-ok:         #1E6F5C;
+        --a-r-pill:     999px;
+        --a-sans:       'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        --a-serif:      'Source Serif 4', Georgia, serif;
+        /* legacy compat for styles.css */
+        --dark: #0F1623;
+        --forest: #1E6F5C;
+        --cream: #F4F3F2;
+        --border: #E5E3E1;
+        --text: #0F1623;
+        --serif: 'Source Serif 4', Georgia, serif;
+        --sans: 'Inter', -apple-system, sans-serif;
       }
-      /* TOP BAR */
-      .topbar {
-        background: var(--dark2); color: #fff;
-        padding: 9px 32px; display: flex; align-items: center; gap: 12px; font-size: 13px;
-        font-family: var(--sans);
-      }
-      .topbar-av { width: 26px; height: 26px; border-radius: 50%; overflow: hidden; flex-shrink: 0; }
-      .topbar-av img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
-      .topbar-phone {
-        border: 1px solid rgba(255,255,255,.28); border-radius: 20px;
-        padding: 3px 13px; font-size: 12px; font-weight: 500;
-      }
-      /* NAV */
-      .lux-nav {
-        background: rgba(255,255,255,.96); backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
+
+      /* ── Nav ── */
+      .a-nav {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0 40px; height: 68px;
+        background: rgba(255,255,255,.92);
+        backdrop-filter: saturate(1.2) blur(10px);
+        -webkit-backdrop-filter: saturate(1.2) blur(10px);
+        border-bottom: 1px solid var(--a-line);
         position: sticky; top: 0; z-index: 200;
-        display: flex; align-items: center; padding: 0 40px; height: 68px; gap: 32px;
-        border-bottom: 1px solid rgba(0,0,0,.06);
-        font-family: var(--sans);
+        font-family: var(--a-sans);
       }
-      .lux-nav-logo {
-        font-family: var(--sans); font-size: 13px; font-weight: 400;
-        letter-spacing: .22em; text-transform: uppercase;
-        color: var(--dark); line-height: 1.55; white-space: nowrap;
+      .a-nav-logo {
+        font-weight: 700; font-size: 15px; letter-spacing: -.01em;
+        color: var(--a-ink); display: inline-flex; align-items: center; gap: 10px;
         text-decoration: none;
       }
-      .lux-nav-links { display: flex; gap: 28px; list-style: none; margin: 0; position: absolute; left: 50%; transform: translateX(-50%); }
-      .lux-nav-links a {
-        text-decoration: none; color: var(--text); font-size: 14px; font-weight: 500; transition: color .2s;
+      .a-nav-dot { width: 10px; height: 10px; background: var(--a-ink); border-radius: 2px; flex-shrink: 0; }
+      .a-nav-links { display: flex; gap: 28px; position: absolute; left: 50%; transform: translateX(-50%); }
+      .a-nav-links a { font-size: 14px; font-weight: 500; color: var(--a-muted-2); text-decoration: none; transition: color .15s; }
+      .a-nav-links a:hover, .a-nav-links a.active { color: var(--a-ink); }
+      .a-nav-actions { display: flex; gap: 10px; align-items: center; }
+      .a-btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        font-family: var(--a-sans); font-weight: 500; font-size: 14px;
+        padding: 12px 20px; border-radius: var(--a-r-pill); border: 1px solid transparent;
+        cursor: pointer; transition: background .15s, color .15s, border-color .15s;
+        white-space: nowrap; text-decoration: none;
       }
-      .lux-nav-links a:hover, .lux-nav-links a.active { color: var(--forest); }
-      .lux-nav-browse-btn {
-        background: var(--dark); color: #fff; border: none; border-radius: 8px;
-        padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer;
-        font-family: var(--sans); transition: background .2s; white-space: nowrap;
-        text-decoration: none; display: inline-block;
+      .a-btn-sm { padding: 8px 14px; font-size: 13px; }
+      .a-btn-primary { background: var(--a-ink); color: #fff; }
+      .a-btn-primary:hover { background: var(--a-ink-2); }
+      .a-btn-ghost { background: transparent; color: var(--a-ink); border-color: var(--a-line-2); }
+      .a-btn-ghost:hover { border-color: var(--a-ink); }
+
+      /* ── Filter bar ── */
+      .filter-bar {
+        background: #fff; border-bottom: 1px solid var(--a-line);
+        padding: 12px 24px; display: flex; align-items: center;
+        justify-content: space-between; gap: 10px; flex-shrink: 0;
+        font-family: var(--a-sans);
       }
-      .lux-nav-browse-btn:hover { background: #333; }
-      /* AUTH */
-      .nav-login-btn { background: var(--dark); color: #fff; border: none; border-radius: 8px; padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--sans); transition: background .2s; }
-      .nav-login-btn:hover { background: #333; }
-      .nav-profile { position: relative; display: flex; align-items: center; gap: 8px; cursor: pointer; }
-      .nav-profile-av { width: 36px; height: 36px; border-radius: 50%; background: var(--dark); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
-      .nav-profile-name { font-size: 14px; font-weight: 500; color: var(--text); }
-      .nav-profile-chevron { font-size: 10px; color: #888; transition: transform .2s; }
-      .nav-profile.open .nav-profile-chevron { transform: rotate(180deg); }
-      .nav-dropdown { position: absolute; top: calc(100% + 10px); right: 0; background: #fff; border: 1px solid #e5e5e5; border-radius: 14px; min-width: 200px; box-shadow: 0 8px 32px rgba(0,0,0,.12); overflow: hidden; display: none; z-index: 300; }
-      .nav-profile.open .nav-dropdown { display: block; }
-      .nav-dropdown-header { padding: 16px 18px 12px; border-bottom: 1px solid #f0f0f0; }
-      .nav-dropdown-fullname { font-size: 14px; font-weight: 600; color: #222; margin-bottom: 2px; }
-      .nav-dropdown-user { font-size: 12px; color: #999; }
-      .nav-dropdown-item { display: flex; align-items: center; gap: 10px; padding: 12px 18px; font-size: 14px; color: #333; cursor: pointer; transition: background .15s; border: none; background: none; width: 100%; font-family: var(--sans); text-align: left; }
-      .nav-dropdown-item:hover { background: #f8f8f8; }
-      .nav-dropdown-item.logout { color: #e53e3e; }
-      /* LOGIN MODAL */
-      .login-modal { position: fixed; inset: 0; z-index: 1000; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.5); backdrop-filter: blur(4px); }
-      .login-modal.open { display: flex; }
-      .login-box { background: #fff; border-radius: 22px; padding: 40px 36px; width: 100%; max-width: 400px; box-shadow: 0 24px 80px rgba(0,0,0,.2); position: relative; }
-      .login-box h2 { font-family: var(--serif); font-size: 26px; font-weight: 500; margin-bottom: 6px; }
-      .login-box .sub { font-size: 14px; color: #999; margin-bottom: 28px; }
-      .login-close { position: absolute; top: 16px; right: 18px; background: #f5f5f5; border: none; border-radius: 50%; width: 30px; height: 30px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #666; }
-      .login-field { margin-bottom: 16px; }
-      .login-field label { display: block; font-size: 11px; font-weight: 700; color: #888; margin-bottom: 6px; letter-spacing: .06em; text-transform: uppercase; }
-      .login-field input { width: 100%; border: 1.5px solid #e5e5e5; border-radius: 10px; padding: 12px 14px; font-size: 15px; font-family: var(--sans); outline: none; transition: border-color .2s; color: #222; }
-      .login-field input:focus { border-color: var(--dark); }
-      .login-error { font-size: 13px; color: #e53e3e; margin-bottom: 14px; display: none; }
-      .login-submit { width: 100%; background: var(--dark); color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: var(--sans); transition: background .2s; margin-top: 4px; }
-      .login-submit:hover { background: #333; }
+      .filter-chips { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .filter-chip {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 8px 14px; font-size: 13px; font-weight: 500; cursor: pointer;
+        border: 1px solid var(--a-line-2); border-radius: var(--a-r-pill);
+        background: #fff; color: var(--a-ink); white-space: nowrap;
+        position: relative; user-select: none; transition: border-color .15s;
+      }
+      .filter-chip:hover { border-color: var(--a-ink); }
+      .filter-chip-active { background: var(--a-ink); color: #fff; border-color: var(--a-ink); }
+      .filter-chip-location { cursor: default; }
+      .filter-chip-location:hover { border-color: var(--a-line-2); }
+      .assumable-toggle { cursor: pointer; }
+      .toggle-dot {
+        width: 8px; height: 8px; border-radius: 50%;
+        background: var(--a-ok); display: inline-block; flex-shrink: 0;
+      }
+      .filter-bar-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+      .count { font-size: 13px; font-weight: 500; color: var(--a-muted-2); }
+
+      /* Filter dropdowns */
+      .filter-dropdown {
+        position: absolute; top: calc(100% + 8px); left: 0;
+        background: #fff; border: 1px solid var(--a-line);
+        border-radius: 14px; padding: 16px; min-width: 200px;
+        box-shadow: 0 8px 24px rgba(15,22,35,.12);
+        z-index: 500; display: none;
+        font-family: var(--a-sans);
+      }
+      .filter-chip:focus-within .filter-dropdown,
+      .filter-chip.dd-open .filter-dropdown { display: block; }
+      .dd-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; font-size: 13px; }
+      .dd-row:last-child { margin-bottom: 0; }
+      .dd-input, .dd-select {
+        border: 1px solid var(--a-line-2); border-radius: 8px;
+        padding: 8px 10px; font-size: 13px; font-family: var(--a-sans);
+        outline: none; width: 130px;
+      }
+      .dd-input:focus, .dd-select:focus { border-color: var(--a-ink); }
+
+      /* ── Secondary row ── */
+      .secondary-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 12px 24px; background: var(--a-cream);
+        border-bottom: 1px solid var(--a-line);
+        flex-shrink: 0; font-family: var(--a-sans);
+      }
     </style>
   </head>
   <body>
 
-  <!-- TOP BAR -->
-  <div class="topbar">
-    <div class="topbar-av">
-      <img src="jeff.jpeg" alt="Jeff Salazar">
-    </div>
-    <span>Jeff Salazar — Scottsdale, AZ</span>
-    <span class="topbar-phone">(602) 332-3860</span>
-  </div>
-
   <!-- NAV -->
-  <nav class="lux-nav">
-    <a href="index.html" class="lux-nav-logo">Luxury<br>Division</a>
-    <ul class="lux-nav-links">
-      <li><a href="properties.html" class="active">Property Search</a></li>
-      <li><a href="index.html#how">How It Works</a></li>
-      <li><a href="index.html#contact">Contact</a></li>
-    </ul>
+  <nav class="a-nav">
+    <a href="index.html" class="a-nav-logo">
+      <span class="a-nav-dot"></span>
+      Assumable
+    </a>
+    <div class="a-nav-links">
+      <a href="properties.html" class="active">Property search</a>
+      <a href="index.html#how">How it works</a>
+      <a href="index.html#off-market">Off-market</a>
+      <a href="index.html#agent">Agent</a>
+    </div>
+    <div class="a-nav-actions">
+      <button class="a-btn a-btn-ghost a-btn-sm">Sign in</button>
+      <a href="index.html#funnel-card" class="a-btn a-btn-primary a-btn-sm">Find your home</a>
+    </div>
   </nav>
 
-
     <section class="map-area page-container">
+      <!-- FILTER BAR -->
       <header class="filter-bar">
-        <div class="filters">
-          <label class="field">
-            <span>Min price</span>
-            <input id="minPrice" type="number" placeholder="Any" min="0" step="25000" />
+        <div class="filter-chips">
+          <div class="filter-chip filter-chip-location">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4l-6 2v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"/></svg>
+            Phoenix, AZ
+          </div>
+          <div class="filter-chip filter-chip-active" id="chip-loan" onclick="toggleLoanFilter()">
+            Loan type: VA, FHA
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+          <div class="filter-chip" id="chip-price">
+            Price
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            <div class="filter-dropdown" id="dd-price">
+              <div class="dd-row">
+                <label>Min</label>
+                <input id="minPrice" type="number" placeholder="Any" min="0" step="25000" class="dd-input"/>
+              </div>
+              <div class="dd-row">
+                <label>Max</label>
+                <input id="maxPrice" type="number" placeholder="Any" min="0" step="25000" class="dd-input"/>
+              </div>
+            </div>
+          </div>
+          <div class="filter-chip" id="chip-beds">
+            Beds
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            <div class="filter-dropdown" id="dd-beds">
+              <select id="minBeds" class="dd-select">
+                <option value="0">Any beds</option>
+                <option value="1">1+ beds</option>
+                <option value="2">2+ beds</option>
+                <option value="3">3+ beds</option>
+                <option value="4">4+ beds</option>
+              </select>
+            </div>
+          </div>
+          <label class="filter-chip assumable-toggle">
+            <input id="assumableOnly" type="checkbox" style="display:none" checked>
+            <span class="toggle-dot"></span>
+            Assumable only
           </label>
-          <label class="field">
-            <span>Max price</span>
-            <input id="maxPrice" type="number" placeholder="Any" min="0" step="25000" />
-          </label>
-          <label class="field">
-            <span>Min beds</span>
-            <select id="minBeds">
-              <option value="0">Any</option>
-              <option value="1">1+</option>
-              <option value="2">2+</option>
-              <option value="3">3+</option>
-              <option value="4">4+</option>
-            </select>
-          </label>
-          <label class="toggle">
-            <input id="assumableOnly" type="checkbox" />
-            <span>Assumable only</span>
-          </label>
+        </div>
+        <div class="filter-bar-right">
           <span class="count" id="resultCount"></span>
         </div>
       </header>
+
+      <!-- SECONDARY ROW -->
+      <div class="secondary-row">
+        <div id="secondary-count" style="font-size:14px;color:var(--a-ink)">
+          Loading listings<span style="color:var(--a-muted-2)"> · All VA &amp; FHA assumable · Rates from 2.625%</span>
+        </div>
+        <div style="font-size:13px;color:var(--a-muted-2)">
+          <span style="color:var(--a-terra-ink);font-weight:600">+ 47 off-market homes available</span> —
+          <a href="index.html#off-market" style="color:var(--a-ink);text-decoration:underline;text-underline-offset:3px">unlock list</a>
+        </div>
+      </div>
 
       <main class="layout">
         <aside class="sidebar" id="sidebar"></aside>
