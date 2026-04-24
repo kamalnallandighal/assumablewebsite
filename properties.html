@@ -209,8 +209,29 @@
       </div>
 
       <main class="layout">
-        <aside class="sidebar" id="sidebar"></aside>
-        <section class="map-wrap"><div id="map"></div></section>
+        <!-- Listings column: 2-col card grid -->
+        <aside class="sidebar" id="sidebar">
+          <div id="card-grid" class="card-grid"></div>
+        </aside>
+        <!-- Map panel -->
+        <section class="map-wrap">
+          <div id="map"></div>
+          <!-- Map overlay controls (top-left) -->
+          <div class="map-controls-tl">
+            <div class="map-pill" id="map-rate-pill">Rate: 2.625 – 4.5%</div>
+            <button class="map-pill map-pill-btn" id="map-search-area">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              Search this area
+            </button>
+          </div>
+          <!-- Zoom controls (bottom-right) -->
+          <div class="map-zoom">
+            <button class="map-zoom-btn" onclick="if(window.map) map.setZoom(map.getZoom()+1)">+</button>
+            <button class="map-zoom-btn" style="border-top:1px solid var(--line)" onclick="if(window.map) map.setZoom(map.getZoom()-1)">−</button>
+          </div>
+          <!-- Map pop card (appears when a pin is selected) -->
+          <div id="map-pop" class="map-pop" style="display:none"></div>
+        </section>
       </main>
     </section>
       <!-- Property Detail Modal -->

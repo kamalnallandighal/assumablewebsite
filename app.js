@@ -8,6 +8,7 @@ let listings = [];
 const markers = new Map();
 // Default: show only assumable listings (matching new design)
 const filterState = { minPrice: null, maxPrice: null, minBeds: 0, assumableOnly: true };
+let selectedListingId = null;
 
 async function loadListings() {
   const res = await fetch('./listings.json');
@@ -91,51 +92,67 @@ function renderMarkers(AdvancedMarkerElement) {
   }
 }
 
-function buildListingCard(l) {
+function buildSearchCard(l) {
   const assumed = parseMoney(l.assumedMonthly);
-  const market  = parseMoney(l.marketMonthly);
-  const savings = market - assumed;
-  const tagClass = l.loanType === 'VA' ? 'card-tag card-tag-va' : 'card-tag card-tag-fha';
+  const parts   = l.address.split(',');
+  const street  = parts[0];
+  const city    = parts.slice(1).join(',').trim();
+  const isSelected = selectedListingId === l.id;
 
-  // Image
-  const imgWrap = el('div', { style: 'position:relative' });
-  if (l.photo) {
-    const img = el('img', { src: l.photo, alt: '' });
-    imgWrap.appendChild(img);
-  }
+  // Image section
+  const imgDiv = el('div', { class: 'sc-img' });
+  if (l.photo) imgDiv.appendChild(el('img', { src: l.photo, alt: street }));
+
   if (l.isAssumable && l.loanType) {
-    const tagRow = el('div', { style: 'position:absolute;top:10px;left:10px;display:flex;gap:5px' });
-    tagRow.appendChild(el('span', { class: tagClass, text: `${l.loanType} · ${l.rate}` }));
-    imgWrap.appendChild(tagRow);
+    const tagRow = el('div', { class: 'sc-tag-row' });
+    const tagCls = l.loanType === 'VA' ? 'sc-tag sc-tag-va' : 'sc-tag sc-tag-fha';
+    tagRow.appendChild(el('span', { class: tagCls, text: `${l.loanType} · ${l.rate}` }));
+    imgDiv.appendChild(tagRow);
   }
+
+  const heartBtn = el('button', { class: 'sc-heart', 'aria-label': 'Save' });
+  heartBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 5.6a5.5 5.5 0 00-7.8 0L12 6.6l-1-1a5.5 5.5 0 00-7.8 7.8L12 22l8.8-8.6a5.5 5.5 0 000-7.8z"/></svg>`;
+  heartBtn.addEventListener('click', e => { e.stopPropagation(); heartBtn.style.color = 'var(--terra)'; });
+  imgDiv.appendChild(heartBtn);
 
   // Body
-  const priceRow = el('div', { style: 'display:flex;justify-content:space-between;align-items:baseline' });
-  priceRow.appendChild(el('span', { class: 'card-price', text: formatPrice(l.price) }));
-  if (savings > 0) {
-    priceRow.appendChild(el('span', { class: 'card-savings', text: `Save $${savings.toLocaleString()}/mo` }));
-  } else {
-    priceRow.appendChild(el('span', { class: 'card-monthly', text: l.assumedMonthly || '' }));
+  const priceRow = el('div', { class: 'sc-price-row' });
+  priceRow.appendChild(el('span', { class: 'sc-price', text: formatPrice(l.price) }));
+  if (assumed > 0) {
+    priceRow.appendChild(el('span', { class: 'sc-monthly', text: `${l.assumedMonthly}/mo` }));
   }
 
-  const addrEl = el('div', { class: 'card-addr', title: l.address });
-  const parts = l.address.split(',');
-  addrEl.textContent = parts[0];
-  const cityEl = el('div', { class: 'card-city', text: parts.slice(1).join(',').trim() });
-  const metaEl = el('div', { class: 'card-meta' });
-  metaEl.innerHTML = `<span>${l.beds} bd</span><span>·</span><span>${l.baths} ba</span><span>·</span><span>${l.sqft.toLocaleString()} sqft</span>`;
+  const addrEl = el('div', { class: 'sc-addr', text: street });
+  const cityEl = el('div', { class: 'sc-city', text: city });
+  const metaEl = el('div', { class: 'sc-meta' });
+  metaEl.innerHTML = `<span>${l.beds} bd</span><span style="margin:0 2px">·</span><span>${l.baths} ba</span><span style="margin:0 2px">·</span><span>${l.sqft.toLocaleString()} sqft</span>`;
 
-  const monthlyRow = el('div', { style: 'margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:13px' });
-  if (l.isAssumable && assumed) {
-    monthlyRow.innerHTML = `<strong>${l.assumedMonthly}/mo</strong> <span style="color:var(--muted-2)">at ${l.rate}</span>`;
-  } else {
-    monthlyRow.innerHTML = `<span style="color:var(--muted-2)">${l.marketMonthly || formatFullPrice(l.price)}</span>`;
+  const bodyChildren = [priceRow, addrEl, cityEl, metaEl];
+
+  // Action buttons — only shown when selected
+  if (isSelected) {
+    const actions = el('div', { class: 'sc-actions' });
+    const tourBtn = el('button', { class: 'sc-btn-tour' });
+    tourBtn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg> Book a tour`;
+    tourBtn.addEventListener('click', e => { e.stopPropagation(); openDetailModal(l); });
+    const detailBtn = el('button', { class: 'sc-btn-details', text: 'Details' });
+    detailBtn.addEventListener('click', e => { e.stopPropagation(); openDetailModal(l); });
+    actions.appendChild(tourBtn);
+    actions.appendChild(detailBtn);
+    bodyChildren.push(actions);
   }
 
-  const body = el('div', { class: 'card-body' }, [priceRow, addrEl, cityEl, metaEl, monthlyRow]);
-  const card = el('div', { class: 'card', dataset: { id: l.id } }, [imgWrap, body]);
+  const body = el('div', { class: 'sc-body' }, bodyChildren);
+  const card = el('div', {
+    class: 'sc' + (isSelected ? ' selected' : ''),
+    dataset: { id: l.id }
+  }, [imgDiv, body]);
+
   return card;
 }
+
+// Legacy alias kept for any remaining references
+function buildListingCard(l) { return buildSearchCard(l); }
 
 /* Lead modal handling (stores leads locally until a CRM webhook is provided) */
 let _currentLeadListing = null;
@@ -167,13 +184,18 @@ function saveLeadPayload(payload) {
 }
 
 function openPopup(l) {
-  openDetailModal(l);
+  // Map pin click: select the card, show pop card (don't immediately open modal)
+  selectedListingId = l.id;
+  const visible = applyFilters(listings, filterState);
+  renderSidebar(visible);
+  highlightMarker(l.id);
+  renderMapPopCard(l);
 }
 
 function highlightCard(id) {
-  document.querySelectorAll('.card').forEach(c => c.classList.toggle('active', c.dataset.id === id));
-  const active = document.querySelector(`.card[data-id="${id}"]`);
-  if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  // Used by openDetailModal to scroll sidebar
+  const card = document.querySelector(`.sc[data-id="${id}"]`);
+  if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function applyFilters(all, s) {
@@ -192,43 +214,64 @@ function render() {
   for (const [id, m] of markers) m.map = visibleIds.has(id) ? map : null;
   renderSidebar(visible);
 
+  // If selected listing is no longer visible, clear it
+  if (selectedListingId && !visibleIds.has(selectedListingId)) {
+    selectedListingId = null;
+    const pop = document.getElementById('map-pop');
+    if (pop) pop.style.display = 'none';
+  }
+
   const countEl = document.getElementById('resultCount');
   if (countEl) countEl.textContent = `${visible.length} home${visible.length === 1 ? '' : 's'}`;
 
   // Update secondary row count
   const secEl = document.getElementById('secondary-count');
   if (secEl) {
-    const assumableCount = visible.filter(l => l.isAssumable).length;
-    const minRate = visible.filter(l => l.isAssumable && l.rate)
+    const minRate = visible
+      .filter(l => l.isAssumable && l.rate)
       .map(l => parseFloat(l.rate))
       .filter(r => !isNaN(r))
       .sort((a, b) => a - b)[0];
-    secEl.innerHTML = `<strong style="font-weight:600">${visible.length} homes</strong><span style="color:var(--a-muted-2)"> · ${assumableCount} assumable${minRate ? ` · Rates from ${minRate}%` : ''}</span>`;
+    secEl.innerHTML = `<strong style="font-weight:600">${visible.length} home${visible.length === 1 ? '' : 's'}</strong><span style="color:var(--muted-2)"> · All VA &amp; FHA assumable${minRate ? ` · Rates from ${minRate}%` : ''}</span>`;
   }
 }
 
 function renderSidebar(visible) {
-  const sidebar = document.getElementById('sidebar');
+  const grid = document.getElementById('card-grid');
+  if (!grid) return;
+
   if (!visible.length) {
-    sidebar.replaceChildren(el('div', { style: 'padding:20px;font-size:14px;color:var(--muted-2);text-align:center', text: 'No listings match your filters.' }));
+    grid.innerHTML = `<div style="grid-column:span 2;padding:32px 16px;font-size:14px;color:var(--muted-2);text-align:center">No listings match your filters.</div>`;
     return;
   }
+
   const cards = visible.map(l => {
-    const card = buildListingCard(l);
+    const card = buildSearchCard(l);
     card.addEventListener('click', () => {
-      map.panTo({ lat: l.lat, lng: l.lng });
-      openPopup(l);
+      selectedListingId = l.id;
+      if (map) map.panTo({ lat: l.lat, lng: l.lng });
+      // Re-render sidebar to update selected state
+      renderSidebar(visible);
+      // Highlight marker + show map pop card
+      highlightMarker(l.id);
+      renderMapPopCard(l);
     });
     return card;
   });
 
-  // Insert off-market teaser after 6th card
+  // Off-market teaser after 6 cards (spans both cols)
   const teaser = buildOffMarketTeaser();
-  const children = [...cards];
-  if (children.length > 6) children.splice(6, 0, teaser);
-  else children.push(teaser);
+  const items = [...cards];
+  if (items.length > 6) items.splice(6, 0, teaser);
+  else items.push(teaser);
 
-  sidebar.replaceChildren(...children);
+  grid.replaceChildren(...items);
+
+  // Scroll selected card into view
+  if (selectedListingId) {
+    const sel = grid.querySelector(`.sc[data-id="${selectedListingId}"]`);
+    if (sel) sel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
 }
 
 function buildOffMarketTeaser() {
@@ -240,6 +283,42 @@ function buildOffMarketTeaser() {
     <a href="index.html#off-market" class="offmarket-teaser-btn">Unlock off-market list</a>
   `;
   return div;
+}
+
+function highlightMarker(id) {
+  // Update pill visual state for all markers
+  for (const [lid, marker] of markers) {
+    const pill = marker.content;
+    if (pill) pill.classList.toggle('selected', lid === id);
+  }
+}
+
+function renderMapPopCard(l) {
+  const pop = document.getElementById('map-pop');
+  if (!pop) return;
+  const tagCls = l.loanType === 'VA' ? 'map-pop-tag map-pop-tag-va' : 'map-pop-tag map-pop-tag-fha';
+  const parts = l.address.split(',');
+  pop.innerHTML = `
+    <img class="map-pop-img" src="${l.photo || ''}" alt="${parts[0]}">
+    <div class="map-pop-body">
+      <div class="map-pop-price-row">
+        <span class="map-pop-price">${formatFullPrice(l.price)}</span>
+        ${l.loanType ? `<span class="${tagCls}">${l.loanType} · ${l.rate}</span>` : ''}
+      </div>
+      <div class="map-pop-addr">${parts[0]}</div>
+      <div class="map-pop-city">${parts.slice(1).join(',').trim()}</div>
+      <div class="map-pop-meta">${l.beds} bd · ${l.baths} ba · ${l.sqft.toLocaleString()} sqft</div>
+      <div class="map-pop-actions">
+        <button class="map-pop-btn-tour" onclick="openDetailModal(window._popListing)">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+          Book a tour
+        </button>
+        <button class="map-pop-btn-view" onclick="openDetailModal(window._popListing)">View</button>
+      </div>
+    </div>
+  `;
+  window._popListing = l;
+  pop.style.display = 'block';
 }
 
 function wireFilters() {
