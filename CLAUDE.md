@@ -8,6 +8,8 @@ Deployed to Vercel via GitHub (`kamalnallandighal/assumablewebsite`). Static sit
 
 Mobile responsiveness pass landed 2026-05-26 (uncommitted) — see "Responsive design" section below.
 
+**Migration to Next.js 15 (branch `next-rebuild`)** — landed 2026-05-27. Static `index.html` / `properties.html` / `styles.css` / `app.js` removed; replaced with Next.js App Router under `app/`, components under `components/`, server-side Cotality client + probe under `lib/cotality/`. Tailwind theme mirrors the original design tokens (`ink`, `terra`, `navy`, `ok`, `cream`, `paper`, `line`, `muted`). Mapbox GL replaces Google Maps. 28 unit tests pass. `redesign` branch preserved untouched. `main` is still the Vercel production deploy.
+
 > **Important context disconnect to know about:** the *current* repo is a vanilla HTML/CSS/JS static site using Google Maps + a static `listings.json` of 16 fake Phoenix listings. The *product thesis* below describes a Next.js + Supabase + Mapbox app driven by ARMLS + Cotality data. The static site is the current marketing/UX prototype; the real product backend has not been built. **Do not start the Next.js rebuild or migrate listings off `listings.json` until the Cotality data pipeline is validated** (see "Current blocker" below).
 
 ---
@@ -297,122 +299,9 @@ If you add another major section headline, either give it an inline mobile-safe 
 
 ## Files
 
-### `index.html` — landing page (fully rewritten in redesign)
+### File layout (Next.js)
 
-**Removed from old version:** topbar with Jeff photo + phone, "LUXURY DIVISION" nav logo, Cormorant Garamond + Poppins fonts, parallax hero, region cards, auto-scrolling carousels, Win-win cards, old FAQ accordion.
-
-**New structure:**
-
-- **Nav** — `.nav` with `.nav-logo` (text "assumable" + `.nav-logo-dot` 10×10px ink square) + centered `.nav-links` (Property Search / How It Works / Contact) + `.nav-actions` (Sign in ghost + Get started terra button). Auth code is dormant — see Auth section below.
-
-- **Hero** — 2-col grid (`1fr 1.05fr`, 72px gap). Left: `.hero-h1` (68px Source Serif 4, weight 400), with `<em>` italic navy for "2–4%" rate callout, supporting copy, and terra CTA button. Right: 2×2 stats grid (32px serif numerals) + funnel card below.
-
-- **Funnel card** — `#funnel-card` div. Contains `.funnel-pill` (terra badge "Find your home"), `#funnel-root` (populated by JS). 6-step flow, all steps optional. State managed via `funnelState` JS object; `renderFunnel()` re-renders the entire step on each interaction.
-
-  Steps:
-  1. **StepCity** — 4×2 grid of city chips (Phoenix, Mesa, Chandler, Scottsdale, Gilbert, Tempe, Glendale, Peoria) with counts. "Open to anywhere in AZ" checkbox.
-  2. **StepPrice** — Two range sliders: max monthly payment (serif 56px live value + `/mo`) and max purchase price. Info callout about 8–15% down assumption.
-  3. **StepBeds** — Min beds (1/2/3/4/5+) and min baths (1/1.5/2/2.5/3+) as pill selectors.
-  4. **StepLoan** — 3 cards: VA / FHA / Show both. VA selected by default.
-  5. **StepUse** — 2 cards: Primary residence / Investment-rental.
-  6. **StepResult** — 3 preview listing cards (from first 3 visible filtered listings), email input + "Send my matches" button wired to `submitOffMarket()`.
-
-  Nav: progress bar strip (6 segments), Back / Skip / Continue buttons, Save & exit ghost button.
-
-- **How it works** — 3-col grid of cards with large terra serif step numbers, ink icons, hover lift animation.
-
-- **Featured listings** — 3-up grid fetched from `listings.json` (first 3 assumable listings). Each card: 4:3 image placeholder, loan tag badge, rate, address, monthly payment in navy.
-
-- **Investor / Off-market dual band** — two side-by-side dark sections (ink bg). Left: investor pitch with ROI stats. Right: off-market waitlist with email input wired to `submitOffMarket()`.
-
-- **Jeff section** — dark ink background, `jeff.jpeg` (`object-position: center top`), 64px serif headline, 4-up stat strip, `.contact-pill` with mail + phone links.
-
-- **FAQ** — `<details>`/`<summary>` accordion, 6 questions.
-
-- **Footer** — 3-col: logo/tagline, nav links, contact info.
-
-- **Scroll-reveal** — `IntersectionObserver` toggles `.visible` on `.reveal` and `.stagger` elements. Stagger children get `animation-delay` increments.
-
-### `properties.html` — map page (selectively rewritten in redesign)
-
-**Removed from old version:** topbar, "LUXURY DIVISION" / `lux-nav`, old label/input filter bar, old auth modal references, DM Serif Display + DM Sans fonts.
-
-**New structure:**
-
-- **Nav** — `.a-nav` identical in structure to index.html nav (logo dot + centered links + actions). Inline CSS block at top of `<style>` tag in file.
-
-- **Filter bar** — `.filter-bar` sticky header below nav. Contains `.filter-chips` row of pill-button chips: Location (globe icon), Loan type (tag icon), Price ($ icon), Beds (bed icon), and an Assumable-only toggle chip (active by default, `filterState.assumableOnly = true`).
-
-- **Secondary row** — `.secondary-row` with `#secondary-count` (e.g. "10 homes · rates 2.625–4.5%") and an off-market nudge link.
-
-- **Main layout** — `.layout` with `display: flex`:
-  - **Sidebar** — `.sidebar { width: 540px }` (previously 380px), scrollable, fixed height (`100vh - nav - filter - secondary`). Contains `#card-grid`.
-  - **Map** — `.map-wrap` flex 1, `#map` fills it. Overlaid:
-    - `.map-controls-tl` (top-left): rate range pill + "Search this area" button.
-    - `.map-zoom` (bottom-right): `+` / `−` buttons wired to `map.setZoom()`.
-    - `#map-pop` (bottom-left, `.map-pop { position: absolute; bottom: 24px; left: 24px; width: 300px }`) — MapPopCard.
-
-- **Card grid** — `#card-grid` uses `.card-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px }`. Cards built by `buildSearchCard(l)`.
-
-  SearchCard structure (`.sc` classes):
-  - `.sc-img { aspect-ratio: 4/3 }` — image or placeholder
-  - `.sc-tag-va` / `.sc-tag-fha` — loan type badge
-  - `.sc-heart` — favorite button (top-right of image)
-  - `.sc-price-row`: `.sc-price` (serif 19px) + `.sc-monthly` (navy, assumed payment)
-  - `.sc-addr`, `.sc-city`, `.sc-meta` (beds · baths · sqft)
-  - `.sc-actions` — appears only on selected card: Tour + Details buttons
-  - Selected state: `border: 2px solid var(--ink); box-shadow: var(--shadow-md)`
-
-- **Off-market teaser** — `.offmarket-teaser { grid-column: span 2 }`, inserted after index 6 in card list.
-
-- **MapPopCard** — rendered into `#map-pop` by `renderMapPopCard(l)`. Shows 16:9 image, loan tag + rate badge, address, monthly payment, "View details" button (opens modal) and X close. `window._popListing` holds current pop listing.
-
-- **Map markers** — `.price-pill` with colored dot: `.price-pill-dot-va { background: var(--navy) }` / `.price-pill-dot-fha { background: var(--terra) }`. Selected marker gets `.selected` class.
-
-- **Property Detail Modal** — preserved from old version (Zillow-style overlay):
-  - Photo gallery (5 faked images, arrows + dots + counter, fade transition)
-  - Header: serif price, address, bed/bath/sqft pills, assumable badge + loan tag
-  - About section with fake description (3 rotating templates)
-  - Features grid (8 deterministic fake features)
-  - Property Details accordion (6 sections: Parking, Interior, Exterior, Utilities, Location, Public Facts)
-  - Payment Calculator: live slider 5–20% down, assumed vs market rate, savings banner
-  - Tour Scheduler: next 7 days as pills, 9am–6pm 30-min slots, confirm → success state
-  - Contact Agent button → lead capture modal
-  - Modal tokens updated to new design system variables
-
-- Leads saved to `localStorage` under key `assumableLeads`
-- Page is fully viewport-locked (no page scroll); only sidebar scrolls
-
-### `styles.css` — styles for `properties.html` only (fully rewritten in redesign)
-
-All old Luxury Division styles replaced. New design tokens as `:root` variables (mirrored from index.html inline styles). Key rule groups:
-- `.a-nav`, `.a-nav-logo`, `.a-nav-dot`, `.a-nav-links`, `.a-nav-actions`
-- `.filter-bar`, `.filter-chips`, `.filter-chip`, `.filter-chip-active`
-- `.secondary-row`, `.layout`, `.sidebar`, `.card-grid`
-- `.sc`, `.sc-img`, `.sc-tag-va`, `.sc-tag-fha`, `.sc-heart`, `.sc-body`, `.sc-price-row`, `.sc-price`, `.sc-monthly`, `.sc-addr`, `.sc-city`, `.sc-meta`, `.sc-actions`, `.sc-btn-tour`, `.sc-btn-details`, `.sc.selected`
-- `.offmarket-teaser`
-- `.map-wrap`, `.map-controls-tl`, `.map-pill`, `.map-pill-btn`, `.map-zoom`, `.map-zoom-btn`
-- `.price-pill`, `.price-pill-dot`, `.price-pill-dot-va`, `.price-pill-dot-fha`, `.price-pill.selected`
-- `.map-pop`, `.map-pop-img`, `.map-pop-body`, `.map-pop-close`
-- All detail modal styles (updated to new tokens)
-
-`index.html` has all its own styles inline — `styles.css` is not loaded by it.
-
-### `app.js` — map, markers, sidebar, filters, modals (selectively updated)
-
-Key changes in redesign:
-- `filterState.assumableOnly = true` — default filter on
-- `let selectedListingId = null` — module-level selection state
-- `renderMarkers()` — inserts colored dot span inside pill (VA = navy dot, FHA = terra dot)
-- `buildSearchCard(l)` — new card builder using `.sc` classes, 4:3 image, loan tag, heart, selected state with action buttons
-- `buildListingCard` aliased to `buildSearchCard` for any legacy references
-- `renderSidebar(visible)` — targets `#card-grid`, builds 2-col grid, inserts off-market teaser after index 6, re-renders on selection change
-- `openPopup(l)` — sets `selectedListingId`, calls `renderSidebar` + `highlightMarker` + `renderMapPopCard` (no longer opens modal directly from marker click)
-- `highlightMarker(id)` — toggles `.selected` class on marker pill content elements
-- `renderMapPopCard(l)` — builds HTML into `#map-pop`, sets `window._popListing = l`, shows the div
-- `highlightCard(id)` — scrolls `.sc[data-id]` into view
-- `render()` — updates `#secondary-count` with count + min rate range from visible listings
-- `buildOffMarketTeaser()` — returns `.offmarket-teaser` div
+`app/page.tsx` (landing) and `app/properties/page.tsx` (map page) compose components from `components/landing/` and `components/properties/`. Shared design tokens live in `tailwind.config.ts`. The data fixture is `lib/listings/data.ts` (normalizes the JSON at `public/listings.json`). Cotality client lives under `lib/cotality/`. See the implementation plan at `docs/superpowers/plans/2026-05-26-nextjs-migration.md` for the per-file rationale and which static-site landmark each component ports from.
 
 ### `listings.json` — single source of truth for both pages (unchanged)
 
@@ -448,9 +337,10 @@ The original site has a "We proudly partner with UMe" section. This is excluded 
 - **Validate Cotality Property API V2 against AZ data** — sign up for the 30-day trial at developer.corelogic.com, run `mortgage/current` against 5–10 known FHA/VA Maricopa County addresses, confirm `loanTypeCode` populates, decide whether `interestRate` is usable or whether document-image OCR is mandatory. See "Current blocker" section.
 
 **Static-site polish (can ship independently of data backend):**
-- **Review + ship redesign branch** — confirm visuals match design handoff, then push `redesign` to remote and set as Vercel production
+- **[done] Review + ship redesign branch** — superseded by the Next.js migration on `next-rebuild`; `redesign` preserved as the design reference branch
 - Add ARMLS / Fair Housing / broker-attribution / data-timestamp compliance to footer (see "Compliance" section) before launch — missing today
-- Wire Google Maps key securely (currently exposed in HTML — fine for local dev, must proxy for production; also: Mapbox migration is in the target stack, decide whether to migrate now or after rebuild)
+- **[done] Replace `listings.json`** — now imported via `lib/listings/data.ts` with numeric normalization; same JSON file at `public/listings.json` is still the source
+- **[done] Wire Google Maps → Mapbox** — Mapbox GL in place on `/properties`; `NEXT_PUBLIC_MAPBOX_TOKEN` still TBD (fallback UI renders without it)
 - Wire lead captures (`assumableLeads` in localStorage) to a CRM webhook
 - Wire `submitOffMarket()` calls (hero + funnel step 6 + investor section) to a real backend
 - SEO: structured data (schema.org/RealEstateListing), meta tags, analytics
