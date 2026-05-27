@@ -6,7 +6,7 @@ const BASE = 'https://api1.cotality.com';
 async function authedGet<T>(path: string): Promise<T> {
   const token = await getCotalityToken();
   const res = await fetch(`${BASE}${path}`, {
-    headers: { Authorization: `OAuth ${token}` }
+    headers: { Authorization: `Bearer ${token}` }
   });
   if (!res.ok) {
     throw new Error(`Cotality GET ${path} → ${res.status}: ${await res.text()}`);
@@ -30,8 +30,17 @@ export async function searchProperty(p: PropertySearchParams): Promise<PropertyS
     bestMatch: String(p.bestMatch ?? true)
   });
   if (p.city) q.set('city', p.city);
-  const result = await authedGet<{ items?: PropertySearchHit[] }>(`/v2/properties/search?${q}`);
-  return result.items?.[0] ?? null;
+  const token = await getCotalityToken();
+  const res = await fetch(`${BASE}/v2/properties/search?${q}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  // Cotality returns 404 with { properties: [], messages: [...] } when no match — treat as null.
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    throw new Error(`Cotality GET /v2/properties/search → ${res.status}: ${await res.text()}`);
+  }
+  const result = (await res.json()) as { items?: PropertySearchHit[]; properties?: PropertySearchHit[] };
+  return result.items?.[0] ?? result.properties?.[0] ?? null;
 }
 
 export function getCurrentMortgage(clip: string): Promise<MortgageTransactionProduct> {
@@ -54,7 +63,7 @@ export async function fetchDocumentImage(p: DocImageParams): Promise<{ contentTy
     outputType: p.outputType ?? 'PDF'
   });
   const res = await fetch(`${BASE}/v2/properties/document-images/mortgage?${q}`, {
-    headers: { Authorization: `OAuth ${token}` }
+    headers: { Authorization: `Bearer ${token}` }
   });
   if (!res.ok) {
     throw new Error(`Cotality doc-image → ${res.status}: ${await res.text()}`);
