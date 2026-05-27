@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Nav } from '../../components/nav/Nav';
 import { FilterBar } from '../../components/properties/FilterBar';
 import { Sidebar } from '../../components/properties/Sidebar';
+import { PropertiesMap } from '../../components/properties/PropertiesMap';
 import { useFilters } from '../../components/properties/filters/useFilters';
 import { formatRate } from '../../lib/format';
 
@@ -27,8 +28,12 @@ export default function PropertiesPage() {
       />
       <div className="flex-1 grid grid-cols-1 md:grid-cols-[540px_1fr] min-h-0">
         <Sidebar listings={visible} selectedId={selectedId} onSelect={setSelectedId} />
-        <div className="bg-line flex items-center justify-center text-muted text-sm">
-          Map placeholder (Task 13)
+        <div className="relative">
+          <PropertiesMap
+            listings={visible}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+          />
         </div>
       </div>
     </div>
