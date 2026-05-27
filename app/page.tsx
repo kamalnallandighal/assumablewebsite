@@ -1,15 +1,18 @@
 import { Nav } from '../components/nav/Nav';
+import { Hero } from '../components/landing/Hero';
 import { Footer } from '../components/landing/Footer';
 
 export default function Home() {
   return (
     <>
       <Nav />
-      <main className="p-8 space-y-4">
-        <h1 className="font-serif text-5xl text-ink">Assumable Homes</h1>
-        <p className="text-muted">Design tokens wired.</p>
-        <button className="bg-terra text-white px-4 py-2 rounded-pill">Find your home</button>
-      </main>
+      <Hero
+        funnelSlot={
+          <div className="rounded-card bg-cream p-8 text-muted text-sm">
+            Funnel card placeholder — wired in Task 9
+          </div>
+        }
+      />
       <Footer />
     </>
   );
