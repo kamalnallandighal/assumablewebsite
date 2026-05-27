@@ -8,6 +8,7 @@ interface Props {
   onSelect: (id: string) => void;
   onFavorite?: (id: string) => void;
   favorited?: boolean;
+  onOpenDetail?: (id: string) => void;
 }
 
 const loanBadgeClass: Record<string, string> = {
@@ -16,7 +17,7 @@ const loanBadgeClass: Record<string, string> = {
   Conventional: 'bg-ink text-white'
 };
 
-export function SearchCard({ listing, selected, onSelect, onFavorite, favorited }: Props) {
+export function SearchCard({ listing, selected, onSelect, onFavorite, favorited, onOpenDetail }: Props) {
   return (
     <button
       type="button"
@@ -62,14 +63,14 @@ export function SearchCard({ listing, selected, onSelect, onFavorite, favorited 
           <div className="flex gap-2 pt-2">
             <button
               type="button"
-              onClick={(e) => { e.stopPropagation(); /* Tour wired in Task 15 */ }}
+              onClick={(e) => { e.stopPropagation(); onOpenDetail?.(listing.id); }}
               className="flex-1 bg-paper border border-ink text-ink text-sm py-1.5 rounded-pill"
             >
               Tour
             </button>
             <button
               type="button"
-              onClick={(e) => { e.stopPropagation(); /* Details wired in Task 15 */ }}
+              onClick={(e) => { e.stopPropagation(); onOpenDetail?.(listing.id); }}
               className="flex-1 bg-ink text-white text-sm py-1.5 rounded-pill"
             >
               Details
