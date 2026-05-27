@@ -5,9 +5,10 @@ const DEFAULT_ZOOM = 11;
 let map;
 let infoWindow;
 let listings = [];
+let _visibleListings = [];
 const markers = new Map();
 // Default: show only assumable listings (matching new design)
-const filterState = { minPrice: null, maxPrice: null, minBeds: 0, assumableOnly: true };
+const filterState = { minPrice: null, maxPrice: null, minBeds: 0, minBaths: 0, loanType: null, city: null };
 let selectedListingId = null;
 
 async function loadListings() {
@@ -66,8 +67,19 @@ async function initMap() {
   }
 
   renderMarkers(AdvancedMarkerElement);
+
+  // Apply URL params from funnel before first render
+  applyUrlParams();
+
   render();
   wireFilters();
+
+  // Open modal if URL hash targets a listing
+  const hashMatch = window.location.hash.match(/^#listing\/(\d+)$/);
+  if (hashMatch) {
+    const l = listings.find(x => x.id === parseInt(hashMatch[1]));
+    if (l) openDetailModal(l);
+  }
 }
 window.initMap = initMap;
 
@@ -184,12 +196,9 @@ function saveLeadPayload(payload) {
 }
 
 function openPopup(l) {
-  // Map pin click: select the card, show pop card (don't immediately open modal)
   selectedListingId = l.id;
-  const visible = applyFilters(listings, filterState);
-  renderSidebar(visible);
   highlightMarker(l.id);
-  renderMapPopCard(l);
+  openDetailModal(l);
 }
 
 function highlightCard(id) {
@@ -200,16 +209,20 @@ function highlightCard(id) {
 
 function applyFilters(all, s) {
   return all.filter(l => {
+    if (!l.isAssumable) return false;
+    if (s.city && !l.address.toLowerCase().includes(s.city.toLowerCase())) return false;
     if (s.minPrice != null && l.price < s.minPrice) return false;
     if (s.maxPrice != null && l.price > s.maxPrice) return false;
     if (s.minBeds && l.beds < s.minBeds) return false;
-    if (s.assumableOnly && !l.isAssumable) return false;
+    if (s.minBaths && l.baths < s.minBaths) return false;
+    if (s.loanType && l.loanType !== s.loanType) return false;
     return true;
   });
 }
 
 function render() {
   const visible = applyFilters(listings, filterState);
+  _visibleListings = visible;
   const visibleIds = new Set(visible.map(l => l.id));
   for (const [id, m] of markers) m.map = visibleIds.has(id) ? map : null;
   renderSidebar(visible);
@@ -217,23 +230,11 @@ function render() {
   // If selected listing is no longer visible, clear it
   if (selectedListingId && !visibleIds.has(selectedListingId)) {
     selectedListingId = null;
-    const pop = document.getElementById('map-pop');
-    if (pop) pop.style.display = 'none';
   }
 
   const countEl = document.getElementById('resultCount');
   if (countEl) countEl.textContent = `${visible.length} home${visible.length === 1 ? '' : 's'}`;
 
-  // Update secondary row count
-  const secEl = document.getElementById('secondary-count');
-  if (secEl) {
-    const minRate = visible
-      .filter(l => l.isAssumable && l.rate)
-      .map(l => parseFloat(l.rate))
-      .filter(r => !isNaN(r))
-      .sort((a, b) => a - b)[0];
-    secEl.innerHTML = `<strong style="font-weight:600">${visible.length} home${visible.length === 1 ? '' : 's'}</strong><span style="color:var(--muted-2)"> · All VA &amp; FHA assumable${minRate ? ` · Rates from ${minRate}%` : ''}</span>`;
-  }
 }
 
 function renderSidebar(visible) {
@@ -250,11 +251,8 @@ function renderSidebar(visible) {
     card.addEventListener('click', () => {
       selectedListingId = l.id;
       if (map) map.panTo({ lat: l.lat, lng: l.lng });
-      // Re-render sidebar to update selected state
-      renderSidebar(visible);
-      // Highlight marker + show map pop card
       highlightMarker(l.id);
-      renderMapPopCard(l);
+      openDetailModal(l);
     });
     return card;
   });
@@ -293,54 +291,169 @@ function highlightMarker(id) {
   }
 }
 
-function renderMapPopCard(l) {
-  const pop = document.getElementById('map-pop');
-  if (!pop) return;
-  const tagCls = l.loanType === 'VA' ? 'map-pop-tag map-pop-tag-va' : 'map-pop-tag map-pop-tag-fha';
-  const parts = l.address.split(',');
-  pop.innerHTML = `
-    <img class="map-pop-img" src="${l.photo || ''}" alt="${parts[0]}">
-    <div class="map-pop-body">
-      <div class="map-pop-price-row">
-        <span class="map-pop-price">${formatFullPrice(l.price)}</span>
-        ${l.loanType ? `<span class="${tagCls}">${l.loanType} · ${l.rate}</span>` : ''}
-      </div>
-      <div class="map-pop-addr">${parts[0]}</div>
-      <div class="map-pop-city">${parts.slice(1).join(',').trim()}</div>
-      <div class="map-pop-meta">${l.beds} bd · ${l.baths} ba · ${l.sqft.toLocaleString()} sqft</div>
-      <div class="map-pop-actions">
-        <button class="map-pop-btn-tour" onclick="openDetailModal(window._popListing)">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
-          Book a tour
-        </button>
-        <button class="map-pop-btn-view" onclick="openDetailModal(window._popListing)">View</button>
-      </div>
+
+function applyUrlParams() {
+  const p = new URLSearchParams(window.location.search);
+  if (p.get('maxPrice')) {
+    filterState.maxPrice = parseInt(p.get('maxPrice'));
+    const el = document.getElementById('maxPrice');
+    if (el) el.value = filterState.maxPrice;
+  }
+  if (p.get('minBeds')) {
+    filterState.minBeds = parseInt(p.get('minBeds'));
+    const el = document.getElementById('minBeds');
+    if (el) el.value = filterState.minBeds;
+  }
+}
+
+const AZ_CITIES = [
+  { name: 'Phoenix',    lat: 33.4484, lng: -112.0740 },
+  { name: 'Mesa',       lat: 33.4152, lng: -111.8315 },
+  { name: 'Chandler',   lat: 33.3062, lng: -111.8413 },
+  { name: 'Scottsdale', lat: 33.4942, lng: -111.9261 },
+  { name: 'Gilbert',    lat: 33.3528, lng: -111.7890 },
+  { name: 'Tempe',      lat: 33.4255, lng: -111.9400 },
+  { name: 'Glendale',   lat: 33.5387, lng: -112.1860 },
+  { name: 'Peoria',     lat: 33.5806, lng: -112.2374 },
+  { name: 'Surprise',   lat: 33.6292, lng: -112.3679 },
+  { name: 'Tucson',     lat: 32.2226, lng: -110.9747 },
+];
+
+function renderCityList(query) {
+  const list = document.getElementById('dd-city-list');
+  if (!list) return;
+  const q = (query || '').trim().toLowerCase();
+  const filtered = q ? AZ_CITIES.filter(c => c.name.toLowerCase().startsWith(q)) : AZ_CITIES;
+  list.innerHTML = filtered.map(c => `
+    <div class="dd-city-item${filterState.city === c.name ? ' active' : ''}" data-city="${c.name}" data-lat="${c.lat}" data-lng="${c.lng}">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+      ${c.name}, Arizona
     </div>
-  `;
-  window._popListing = l;
-  pop.style.display = 'block';
+  `).join('');
+
+  list.querySelectorAll('.dd-city-item').forEach(item => {
+    item.addEventListener('click', e => {
+      e.stopPropagation();
+      filterState.city = item.dataset.city;
+      const lat = parseFloat(item.dataset.lat);
+      const lng = parseFloat(item.dataset.lng);
+      if (window.map) map.panTo({ lat, lng });
+      updateChipLabels();
+      render();
+      closeAllDropdowns();
+    });
+  });
+}
+
+function updateChipLabels() {
+  // Location
+  const locLabel = document.getElementById('chip-location-label');
+  const locChip = document.getElementById('chip-location');
+  if (locLabel) locLabel.textContent = filterState.city ? `${filterState.city}, AZ` : 'Location';
+  locChip?.classList.toggle('filter-chip-active', !!filterState.city);
+
+  // Loan type
+  const loanLabel = document.getElementById('chip-loan-label');
+  const loanChip = document.getElementById('chip-loan');
+  if (loanLabel) loanLabel.textContent = filterState.loanType ? `Loan: ${filterState.loanType}` : 'Loan type';
+  loanChip?.classList.toggle('filter-chip-active', !!filterState.loanType);
+
+  // Price
+  const priceLabel = document.getElementById('chip-price-label');
+  const priceChip = document.getElementById('chip-price');
+  if (priceLabel) {
+    const parts = [];
+    if (filterState.minPrice) parts.push(`$${(filterState.minPrice/1000).toFixed(0)}k+`);
+    if (filterState.maxPrice) parts.push(`≤$${(filterState.maxPrice/1000).toFixed(0)}k`);
+    priceLabel.textContent = parts.length ? parts.join(' ') : 'Price';
+    priceChip?.classList.toggle('filter-chip-active', parts.length > 0);
+  }
+
+  // Beds & baths
+  const bbLabel = document.getElementById('chip-beds-baths-label');
+  const bbChip = document.getElementById('chip-beds-baths');
+  if (bbLabel) {
+    const parts = [];
+    if (filterState.minBeds) parts.push(`${filterState.minBeds}+ bd`);
+    if (filterState.minBaths) parts.push(`${filterState.minBaths}+ ba`);
+    bbLabel.textContent = parts.length ? parts.join(', ') : 'Beds & baths';
+    bbChip?.classList.toggle('filter-chip-active', parts.length > 0);
+  }
+}
+
+function closeAllDropdowns() {
+  document.querySelectorAll('.filter-chip.dd-open').forEach(c => c.classList.remove('dd-open'));
 }
 
 function wireFilters() {
+  // Chip click → toggle open/close
+  ['chip-location', 'chip-loan', 'chip-price', 'chip-beds-baths'].forEach(id => {
+    const chip = document.getElementById(id);
+    if (!chip) return;
+    chip.addEventListener('click', e => {
+      const isOpen = chip.classList.contains('dd-open');
+      closeAllDropdowns();
+      if (!isOpen) {
+        chip.classList.add('dd-open');
+        if (id === 'chip-location') {
+          renderCityList('');
+          document.getElementById('location-input')?.focus();
+        }
+      }
+      e.stopPropagation();
+    });
+    chip.querySelector('.filter-dropdown')?.addEventListener('click', e => e.stopPropagation());
+  });
+
+  // Close when clicking outside
+  document.addEventListener('click', closeAllDropdowns);
+
+  // Location search input
+  document.getElementById('location-input')?.addEventListener('input', e => {
+    renderCityList(e.target.value);
+  });
+
+  // Loan type radios
+  document.querySelectorAll('input[name="loanType"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      filterState.loanType = radio.value || null;
+      updateChipLabels();
+      render();
+    });
+  });
+
+  // Price inputs
   const min = document.getElementById('minPrice');
   const max = document.getElementById('maxPrice');
-  const beds = document.getElementById('minBeds');
-  const assume = document.getElementById('assumableOnly');
+  [min, max].forEach(el => {
+    el?.addEventListener('input', () => {
+      filterState.minPrice = min?.value ? Number(min.value) : null;
+      filterState.maxPrice = max?.value ? Number(max.value) : null;
+      updateChipLabels();
+      render();
+    });
+  });
 
-  // Sync checkbox to default state
-  if (assume) assume.checked = filterState.assumableOnly;
+  // Beds & baths buttons
+  document.querySelectorAll('.dd-bb-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = Number(btn.dataset.val);
+      const group = btn.dataset.group;
+      // Toggle active within the same group
+      document.querySelectorAll(`.dd-bb-btn[data-group="${group}"]`)
+        .forEach(b => b.classList.toggle('active', Number(b.dataset.val) === val));
+      if (group === 'beds') filterState.minBeds = val;
+      if (group === 'baths') filterState.minBaths = val;
+    });
+  });
 
-  const update = () => {
-    if (min) filterState.minPrice = min.value ? Number(min.value) : null;
-    if (max) filterState.maxPrice = max.value ? Number(max.value) : null;
-    if (beds) filterState.minBeds = Number(beds.value) || 0;
-    if (assume) filterState.assumableOnly = assume.checked;
+  // Beds & baths Apply button
+  document.getElementById('dd-bb-apply')?.addEventListener('click', e => {
+    e.stopPropagation();
+    updateChipLabels();
     render();
-  };
-  min?.addEventListener('input', update);
-  max?.addEventListener('input', update);
-  beds?.addEventListener('change', update);
-  assume?.addEventListener('change', update);
+    closeAllDropdowns();
+  });
 }
 
 // Render a compact preview of listings on the landing page (if present)
@@ -376,26 +489,19 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // =========================================================
-// PROPERTY DETAIL MODAL
+// PROPERTY DETAIL MODAL v2 — Zillow-style 2-col overlay
 // =========================================================
 
-let _galleryPhotos = [];
-let _galleryIndex = 0;
-let _tourSelectedDay = null;
-let _tourSelectedTime = null;
 let _calcListing = null;
 
-// --- Fake data generators ---
+// ── Fake data helpers ──
 
 const _descriptions = [
   l => `Welcome to this beautifully maintained ${l.beds}-bedroom, ${l.baths}-bathroom home offering ${l.sqft.toLocaleString()} sq ft of thoughtfully designed living space. The open-concept layout features an updated kitchen with granite countertops, a spacious primary suite, and a covered patio perfect for Arizona evenings.${l.isAssumable ? ` This home comes with a rare assumable ${l.loanType} loan at just ${l.rate} — a significant advantage in today's market.` : ''}`,
   l => `Stunning ${l.sqft.toLocaleString()} sq ft residence in the heart of the Valley. This ${l.beds}BR/${l.baths}BA home features vaulted ceilings, stainless steel appliances, and a resort-style backyard. Close to top-rated schools, dining, and freeways.${l.isAssumable ? ` Assume the existing ${l.loanType} mortgage at ${l.rate} and save hundreds per month versus today's rates.` : ''}`,
   l => `Move-in ready ${l.beds}-bedroom gem with ${l.sqft.toLocaleString()} sq ft of refined living space. Highlights include a chef's kitchen, spa-like primary bath, and low-maintenance desert landscaping.${l.isAssumable ? ` Qualified buyers can assume the ${l.loanType} loan at ${l.rate} — locking in below-market financing from day one.` : ' Priced competitively in a desirable neighborhood with easy access to shopping and top-rated schools.'}`,
 ];
-
-function getDescription(l) {
-  return _descriptions[parseInt(l.id) % _descriptions.length](l);
-}
+function getDescription(l) { return _descriptions[parseInt(l.id) % _descriptions.length](l); }
 
 const _allFeatures = [
   'Attached 2-Car Garage', 'Private Pool & Spa', 'Updated Kitchen', 'Central A/C',
@@ -403,305 +509,298 @@ const _allFeatures = [
   'Stainless Steel Appliances', 'Hardwood Floors', 'Smart Thermostat', 'Solar Panels',
   'Vaulted Ceilings', 'Wood-Burning Fireplace', 'In-Unit Laundry', 'No HOA',
 ];
-
 function getFeatures(l) {
   const seed = parseInt(l.id);
   return _allFeatures.filter((_, i) => (i * 7 + seed) % 3 !== 0).slice(0, 8);
 }
-
 function getPhotos(l) {
   return ['house', 'living', 'kitchen', 'bedroom', 'yard'].map(
     s => `https://picsum.photos/seed/${l.id}${s}/800/500`
   );
 }
 
-function getAccordionData(l) {
-  const id = parseInt(l.id);
-  const carIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>`;
-  const homeIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`;
-  const extIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>`;
-  const boltIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`;
-  const pinIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>`;
-  const docIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`;
+// ── Math helpers ──
 
-  return [
-    { title: 'Parking', icon: carIcon, groups: [
-      { title: 'GARAGE', items: [`${1 + id % 2}-car attached garage`, 'Epoxy floor finish', 'EV charging ready'] },
-      { title: 'ADDITIONAL', items: ['Wide concrete driveway', 'Street parking available'] },
-    ]},
-    { title: 'Interior', icon: homeIcon, open: true, groups: [
-      { title: 'BEDROOMS & BATHROOMS', items: [`Bedrooms: ${l.beds}`, `Bathrooms: ${l.baths}`, `Living Area: ${l.sqft.toLocaleString()} sqft`] },
-      { title: 'CLIMATE CONTROL', items: ['Cooling: Central Air, Ceiling Fan(s)', 'Heating: Natural Gas', `Fireplace: ${id % 3 === 0 ? 'Yes — wood burning' : 'No'}`] },
-    ]},
-    { title: 'Exterior', icon: extIcon, groups: [
-      { title: 'FEATURES', items: ['Covered patio', `Pool: ${id % 2 === 0 ? 'Yes — heated' : 'No'}`, 'Professionally landscaped', 'Block wall perimeter'] },
-      { title: 'CONSTRUCTION', items: ['Stucco exterior', 'Concrete tile roof', `Built: ${2000 + id * 3}`] },
-    ]},
-    { title: 'Utilities', icon: boltIcon, groups: [
-      { title: 'UTILITIES', items: ['Water: City', 'Sewer: City', 'Electric: APS', 'Gas: Southwest Gas'] },
-    ]},
-    { title: 'Location', icon: pinIcon, groups: [
-      { title: 'SCHOOL DISTRICT', items: ['Highly rated public schools', `Walk Score: ${60 + id * 4}`, `Bike Score: ${40 + id * 5}`] },
-      { title: 'NEARBY', items: ['Close to dining & retail', 'Easy freeway access', 'Minutes to downtown'] },
-    ]},
-    { title: 'Public Facts', icon: docIcon, groups: [
-      { title: 'PROPERTY', items: [`Year Built: ${2000 + id * 3}`, `Lot Size: ${Math.round(l.sqft * 2.4).toLocaleString()} sqft`, 'County: Maricopa', 'Zoning: R1-6'] },
-      { title: 'TAX', items: [`Annual Property Tax: $${Math.round(l.price * 0.008).toLocaleString()}`, 'Tax Year: 2024'] },
-    ]},
-  ];
-}
+function parseMoney(str) { return parseInt(String(str || '0').replace(/[$,]/g, '')) || 0; }
+function parseRateStr(str) { return parseFloat(String(str || '0').replace('%', '')) / 100; }
+function fmtMoney(n) { return '$' + Math.round(n).toLocaleString(); }
 
-// --- Payment calculator ---
+// ── Next 5 days helper ──
 
-function parseMoney(str) {
-  return parseInt(String(str || '0').replace(/[$,]/g, '')) || 0;
-}
-
-function parseRateStr(str) {
-  return parseFloat(String(str || '0').replace('%', '')) / 100;
-}
-
-function calcMonthly(price, downPayment, rateStr) {
-  const loan = price - downPayment;
-  if (loan <= 0) return 0;
-  const r = parseRateStr(rateStr) / 12;
-  const n = 360;
-  if (r === 0) return loan / n;
-  return loan * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
-}
-
-function fmtMoney(n) {
-  return '$' + Math.round(n).toLocaleString();
-}
-
-function updateSliderTrack(slider) {
-  const min = parseInt(slider.min);
-  const max = parseInt(slider.max);
-  const val = parseInt(slider.value);
-  const pct = ((val - min) / (max - min) * 100).toFixed(1);
-  slider.style.setProperty('--pct', pct + '%');
-}
-
-function updateCalcDisplay(l, downPayment) {
-  document.getElementById('calcDownDisplay').textContent = fmtMoney(downPayment);
-  const assumed = calcMonthly(l.price, downPayment, l.rate);
-  document.getElementById('calcMonthlyAmount').textContent = fmtMoney(assumed);
-
-  if (l.isAssumable) {
-    const market = calcMonthly(l.price, downPayment, l.marketRate);
-    const savings = market - assumed;
-    document.getElementById('calcAssumedRate').textContent = l.rate;
-    document.getElementById('calcAssumedPayment').textContent = fmtMoney(assumed) + '/mo';
-    document.getElementById('calcMarketRate').textContent = l.marketRate;
-    document.getElementById('calcMarketPayment').textContent = fmtMoney(market) + '/mo';
-    const banner = document.getElementById('calcSavingsBanner');
-    if (savings > 0) {
-      document.getElementById('calcSavingsAmount').textContent = fmtMoney(savings) + '/mo';
-      document.getElementById('calcSavingsTotal').textContent = `(${fmtMoney(savings * 360)} over 30 yrs)`;
-      banner.style.display = 'flex';
-    } else {
-      banner.style.display = 'none';
-    }
-    document.getElementById('calcComparison').style.display = 'grid';
-    document.getElementById('calcNotAssumable').style.display = 'none';
-  } else {
-    document.getElementById('calcComparison').style.display = 'none';
-    document.getElementById('calcSavingsBanner').style.display = 'none';
-    document.getElementById('calcNotAssumable').style.display = 'block';
-  }
-}
-
-function renderCalculator(l) {
-  const minDown = Math.round(l.price * 0.05 / 1000) * 1000;
-  const maxDown = Math.round(l.price * 0.20 / 1000) * 1000;
-  const defaultDown = Math.max(minDown, Math.min(maxDown, parseMoney(l.downPayment) || Math.round(l.price * 0.10 / 1000) * 1000));
-
-  const slider = document.getElementById('calcSlider');
-  slider.min = minDown;
-  slider.max = maxDown;
-  slider.step = 1000;
-  slider.value = defaultDown;
-  document.getElementById('calcSliderMin').textContent = '5%';
-  document.getElementById('calcSliderMax').textContent = '20%';
-  updateCalcDisplay(l, defaultDown);
-  updateSliderTrack(slider);
-  slider.oninput = () => {
-    const val = parseInt(slider.value);
-    updateCalcDisplay(l, val);
-    updateSliderTrack(slider);
-  };
-}
-
-// --- Gallery ---
-
-function showPhoto(index) {
-  _galleryIndex = index;
-  const img = document.getElementById('galleryImg');
-  if (!img) return;
-  img.style.opacity = '0';
-  setTimeout(() => { img.src = _galleryPhotos[index]; img.style.opacity = '1'; }, 150);
-  document.querySelectorAll('.gallery-dot').forEach((d, i) => d.classList.toggle('active', i === index));
-  const cnt = document.getElementById('galleryCount');
-  if (cnt) cnt.textContent = `${index + 1} / ${_galleryPhotos.length}`;
-}
-
-// --- Tour scheduler ---
-
-function getTourDays() {
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  return Array.from({ length: 7 }, (_, i) => {
+function getNextFiveDays() {
+  const letters = ['S','M','T','W','T','F','S'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return Array.from({ length: 5 }, (_, i) => {
     const d = new Date(); d.setDate(d.getDate() + i);
-    return { label: `${d.getMonth() + 1}/${d.getDate()}`, dayName: i === 0 ? 'Today' : dayNames[d.getDay()] };
+    return {
+      letter: letters[d.getDay()],
+      num: d.getDate(),
+      label: `${months[d.getMonth()]} ${d.getDate()}`,
+    };
   });
 }
 
-function getTourTimes() {
-  const times = [];
-  for (let h = 9; h < 18; h++) {
-    for (const m of [0, 30]) {
-      const period = h < 12 ? 'AM' : 'PM';
-      const h12 = h > 12 ? h - 12 : h;
-      times.push(`${h12}:${m === 0 ? '00' : '30'} ${period}`);
-    }
-  }
-  return times;
+// ── Top bar ──
+
+function updateDmTopbar(l) {
+  const idx = _visibleListings.findIndex(x => x.id === l.id);
+  const total = _visibleListings.length;
+  const counter = document.getElementById('dmCounter');
+  if (counter) counter.textContent = total > 0 ? `${idx + 1} of ${total}` : '';
+  const prev = document.getElementById('dmPrev');
+  const next = document.getElementById('dmNext');
+  if (prev) prev.disabled = idx <= 0;
+  if (next) next.disabled = idx >= total - 1;
 }
 
-// --- Main modal ---
+function navigateModal(dir) {
+  if (!_calcListing) return;
+  const idx = _visibleListings.findIndex(x => x.id === _calcListing.id);
+  const nextIdx = idx + dir;
+  if (nextIdx < 0 || nextIdx >= _visibleListings.length) return;
+  openDetailModal(_visibleListings[nextIdx]);
+}
+
+// ── Left column ──
+
+function populateDmLeft(l) {
+  const photos = getPhotos(l);
+  const parts = l.address.split(',');
+  const street = parts[0];
+  const city = parts.slice(1).join(',').trim();
+  const monthlySavings = parseMoney(l.marketMonthly) - parseMoney(l.assumedMonthly);
+  const id = parseInt(l.id);
+  const tagCls = l.loanType === 'VA' ? 'tag tag-va' : 'tag tag-fha';
+  const features = getFeatures(l);
+  const facts = [
+    ['Type', 'Single family · 1-story'],
+    ['Year built', `${1990 + (id * 7 % 30)} · Remodeled 2021`],
+    ['Lot', '0.18 ac · Corner'],
+    ['Parking', `${1 + id % 2}-car attached garage`],
+    ['HOA', id % 3 === 0 ? '$120/mo' : 'None'],
+    ['Utilities', 'APS · SW Gas · City water'],
+    ['Roof', 'Tile · Replaced 2019'],
+    ['MLS #', `${6830000 + id * 97} · ${3 + id % 8} days ago`],
+  ];
+
+  document.getElementById('dmLeft').innerHTML = `
+    <div style="padding:28px">
+      <div class="dm-gallery">
+        <img class="dm-gal-main" src="${photos[0]}" alt="Front elevation">
+        <div class="dm-gal-stack">
+          <img class="dm-gal-thumb" src="${photos[2]}" alt="Kitchen">
+          <img class="dm-gal-thumb" src="${photos[4]}" alt="Backyard">
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:20px">
+        <span class="${tagCls}">${l.loanType} · ${l.rate}</span>
+        <span class="tag tag-ok">Assumable</span>
+      </div>
+
+      <h2 id="dmAddress" style="font-family:var(--serif);font-size:38px;font-weight:400;letter-spacing:-.02em;margin:10px 0 6px;line-height:1.05">${street}</h2>
+      <div style="font-size:14px;color:var(--muted-2)">${city}</div>
+
+      <div style="display:flex;gap:20px;margin-top:14px;font-size:13px">
+        <span><strong>${l.beds}</strong> bd</span>
+        <span><strong>${l.baths}</strong> ba</span>
+        <span><strong>${l.sqft.toLocaleString()}</strong> sqft</span>
+      </div>
+
+      <div style="margin-top:22px;padding:20px;background:var(--cream);border-radius:16px">
+        <div style="font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2);margin-bottom:12px">Assumable advantage</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+          <div>
+            <div style="font-size:11px;color:var(--muted-2)">Monthly</div>
+            <div style="font-family:var(--serif);font-size:28px;font-weight:400;color:var(--navy);letter-spacing:-.02em;margin-top:4px">$${parseMoney(l.assumedMonthly).toLocaleString()}</div>
+            <div style="font-size:11px;color:var(--ok);font-weight:500;margin-top:2px">+$${Math.max(0,monthlySavings).toLocaleString()}/mo saved</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--muted-2)">Rate</div>
+            <div style="font-family:var(--serif);font-size:28px;font-weight:400;letter-spacing:-.02em;margin-top:4px">${l.rate}</div>
+            <div style="font-size:11px;color:var(--muted-2);margin-top:2px">vs ${l.marketRate} today</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--muted-2)">Equity needed</div>
+            <div style="font-family:var(--serif);font-size:28px;font-weight:400;letter-spacing:-.02em;margin-top:4px">${formatPrice(parseMoney(l.downPayment))}</div>
+            <div style="font-size:11px;color:var(--muted-2);margin-top:2px">Down payment</div>
+          </div>
+        </div>
+      </div>
+
+      <p style="font-size:14px;color:var(--ink);line-height:1.7;margin-top:22px;max-width:560px">${getDescription(l)}</p>
+
+      <div style="margin-top:22px">
+        <div style="font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2);margin-bottom:12px">Facts &amp; features</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0 32px">
+          ${facts.map(([k,v]) => `<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:12px"><span style="color:var(--muted-2)">${k}</span><span style="color:var(--ink);font-weight:500;text-align:right">${v}</span></div>`).join('')}
+        </div>
+        <div style="margin-top:14px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+          ${features.map(f => `<div style="padding:9px 10px;background:#fff;border:1px solid var(--line);border-radius:8px;font-size:11px;color:var(--ink);display:flex;align-items:center;gap:6px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>${f}</div>`).join('')}
+        </div>
+      </div>
+
+      <a href="property.html?id=${l.id}" style="font-size:13px;color:var(--ink);text-decoration:underline;text-underline-offset:3px;display:inline-block;margin-top:18px;margin-bottom:4px">View full property page →</a>
+    </div>
+  `;
+}
+
+// ── Right column (booking rail) ──
+
+function populateDmRight(l) {
+  const right = document.getElementById('dmRight');
+  const days = getNextFiveDays();
+  const times = ['10am', '11:30', '1pm', '2:30', '4pm', '5:30'];
+  let selectedDay = days[0];
+  let selectedTime = null;
+
+  right.innerHTML = `
+    <div style="padding:28px">
+      <div style="font-family:var(--serif);font-size:22px;font-weight:400;letter-spacing:-.02em">Tour this home</div>
+      <div style="font-size:12px;color:var(--muted-2);margin-top:4px">In person or virtual · No signup needed</div>
+
+      <div id="dmDayGrid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:18px">
+        ${days.map((d, i) => `<button class="dm-day-btn${i === 0 ? ' dm-sel' : ''}" data-idx="${i}"><span style="font-size:9px;opacity:.7;display:block;margin-bottom:2px">${d.letter}</span>${d.num}</button>`).join('')}
+      </div>
+
+      <div id="dmTimeGrid" style="margin-top:10px;display:grid;grid-template-columns:repeat(3,1fr);gap:5px">
+        ${times.map(t => `<button class="dm-time-btn" data-time="${t}">${t}</button>`).join('')}
+      </div>
+
+      <button id="dmBookBtn" class="dm-book-btn" disabled style="margin-top:16px">Book ${selectedDay.label}</button>
+
+      <div style="margin-top:16px;padding:14px;background:var(--terra-soft);border-radius:10px;border:1px solid var(--terra)">
+        <div style="font-size:12px;font-weight:600;color:var(--terra-ink)">Investor?</div>
+        <div style="font-size:11px;color:var(--terra-ink);opacity:.8;margin-top:4px;line-height:1.5">VA loan — rentable. Get ROI breakdown.</div>
+        <button style="margin-top:10px;width:100%;padding:9px;background:var(--terra);color:#fff;border:none;border-radius:var(--r-pill);font:600 12px var(--sans);cursor:pointer">Discuss ROI</button>
+      </div>
+
+      <div style="margin-top:14px;padding:12px;background:#fff;border-radius:10px;display:flex;gap:10px;align-items:center;border:1px solid var(--line)">
+        <img src="jeff.jpeg" style="width:32px;height:32px;border-radius:50%;object-fit:cover;object-position:center top;flex-shrink:0" alt="Jeff Salazar">
+        <div style="flex:1;font-size:11px">
+          <div style="font-weight:600">Jeff Salazar</div>
+          <div style="color:var(--muted-2)">(602) 332-3860</div>
+        </div>
+        <button style="padding:6px 12px;background:transparent;color:var(--ink);border:1px solid var(--line-2);border-radius:var(--r-pill);font:500 11px var(--sans);cursor:pointer">Chat</button>
+      </div>
+
+      <div style="margin-top:20px;background:#fff;border-radius:12px;padding:18px;border:1px solid var(--line)">
+        <div style="font-family:var(--serif);font-size:18px;font-weight:400;letter-spacing:-.02em">Estimate your payment</div>
+        <div style="font-size:11px;color:var(--muted-2);margin-top:3px">Adjust your down payment to see monthly</div>
+        <div style="margin-top:16px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:11px">
+            <span style="color:var(--muted-2)">Down payment</span>
+            <span id="dmDownDisplay" style="color:var(--ink);font-weight:600"></span>
+          </div>
+          <input type="range" id="dmCalcSlider" class="calc-slider" min="5" max="35" step="1" value="10" style="margin-top:8px;width:100%">
+          <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:var(--muted)">
+            <span>5%</span><span>20%</span><span>35%</span>
+          </div>
+        </div>
+        <div style="margin-top:16px;padding-top:16px;border-top:1px dashed var(--line-2);display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <div style="font-size:10px;color:var(--muted-2);text-transform:uppercase;letter-spacing:.08em">Monthly P&amp;I</div>
+            <div id="dmCalcMonthly" style="font-family:var(--serif);font-size:26px;font-weight:400;letter-spacing:-.02em;color:var(--navy);margin-top:3px"></div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--muted-2);text-transform:uppercase;letter-spacing:.08em">Cash to close</div>
+            <div id="dmCalcClose" style="font-family:var(--serif);font-size:26px;font-weight:400;letter-spacing:-.02em;margin-top:3px"></div>
+          </div>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:10px;line-height:1.5">Includes est. $3,200 closing. Taxes + insurance not included.</div>
+      </div>
+    </div>
+  `;
+
+  // Day picker events
+  const dayGrid = document.getElementById('dmDayGrid');
+  dayGrid.querySelectorAll('.dm-day-btn').forEach((btn, i) => {
+    btn.addEventListener('click', () => {
+      selectedDay = days[i];
+      selectedTime = null;
+      dayGrid.querySelectorAll('.dm-day-btn').forEach(b => b.classList.remove('dm-sel'));
+      btn.classList.add('dm-sel');
+      document.getElementById('dmTimeGrid').querySelectorAll('.dm-time-btn').forEach(b => b.classList.remove('dm-sel'));
+      updateBookBtn();
+    });
+  });
+
+  // Time picker events
+  document.getElementById('dmTimeGrid').querySelectorAll('.dm-time-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedTime = btn.dataset.time;
+      document.getElementById('dmTimeGrid').querySelectorAll('.dm-time-btn').forEach(b => b.classList.remove('dm-sel'));
+      btn.classList.add('dm-sel');
+      updateBookBtn();
+    });
+  });
+
+  function updateBookBtn() {
+    const btn = document.getElementById('dmBookBtn');
+    if (!btn) return;
+    if (selectedTime) {
+      btn.disabled = false;
+      btn.textContent = `Book ${selectedDay.label} @ ${selectedTime}`;
+    } else {
+      btn.disabled = true;
+      btn.textContent = `Book ${selectedDay.label}`;
+    }
+  }
+
+  // Book button
+  document.getElementById('dmBookBtn').addEventListener('click', () => {
+    console.log('Tour booked:', { listingId: l.id, day: selectedDay.label, time: selectedTime });
+    const btn = document.getElementById('dmBookBtn');
+    btn.textContent = '✓ Tour request sent!';
+    btn.disabled = true;
+    btn.style.background = 'var(--ok)';
+  });
+
+  // Payment estimator
+  const slider = document.getElementById('dmCalcSlider');
+  function updateCalc() {
+    const pct = parseInt(slider.value);
+    const down = Math.round(l.price * pct / 100);
+    const loan = l.price - down;
+    const r = parseRateStr(l.rate) / 12;
+    const n = 360;
+    const monthly = r === 0 ? loan / n : (loan * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+    const fillPct = ((pct - 5) / 30 * 100).toFixed(1);
+    slider.style.background = `linear-gradient(to right,var(--ink) 0%,var(--ink) ${fillPct}%,var(--line-2) ${fillPct}%,var(--line-2) 100%)`;
+    document.getElementById('dmDownDisplay').textContent = `${pct}% · $${down.toLocaleString()}`;
+    document.getElementById('dmCalcMonthly').textContent = fmtMoney(monthly);
+    document.getElementById('dmCalcClose').textContent = `$${(down + 3200).toLocaleString()}`;
+  }
+  slider.addEventListener('input', updateCalc);
+  updateCalc();
+}
+
+// ── Open / close ──
 
 function openDetailModal(l) {
+  if (!l) return;
   _calcListing = l;
-  _tourSelectedDay = null;
-  _tourSelectedTime = null;
-  _galleryPhotos = getPhotos(l);
-  _galleryIndex = 0;
+  selectedListingId = l.id;
 
-  // Gallery
-  const img = document.getElementById('galleryImg');
-  img.src = _galleryPhotos[0];
-  img.style.opacity = '1';
-  const dotsEl = document.getElementById('galleryDots');
-  dotsEl.innerHTML = '';
-  _galleryPhotos.forEach((_, i) => {
-    const dot = document.createElement('span');
-    dot.className = 'gallery-dot' + (i === 0 ? ' active' : '');
-    dot.addEventListener('click', () => showPhoto(i));
-    dotsEl.appendChild(dot);
-  });
-  document.getElementById('galleryCount').textContent = `1 / ${_galleryPhotos.length}`;
+  populateDmLeft(l);
+  populateDmRight(l);
+  updateDmTopbar(l);
 
-  // Header
-  document.getElementById('detailPrice').textContent = formatFullPrice(l.price);
-  document.getElementById('detailAddress').textContent = l.address;
-  document.getElementById('detailMetaPills').innerHTML = `
-    <span class="meta-pill"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>${l.beds} bed</span>
-    <span class="meta-pill"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 12h16M4 12a2 2 0 01-2-2V6a2 2 0 012-2h16a2 2 0 012 2v4a2 2 0 01-2 2M4 12v6a2 2 0 002 2h12a2 2 0 002-2v-6"/></svg>${l.baths} bath</span>
-    <span class="meta-pill"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg>${l.sqft.toLocaleString()} sqft</span>
-  `;
-  document.getElementById('detailBadges').innerHTML = l.isAssumable
-    ? `<span class="badge-assumable"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>Assumable</span>${l.loanType ? `<span class="badge-loan">${l.loanType} · ${l.rate}</span>` : ''}`
-    : '';
+  history.pushState(null, '', '#listing/' + l.id);
 
-  // Description
-  document.getElementById('detailDescription').textContent = getDescription(l);
-
-  // Features
-  const featEl = document.getElementById('detailFeatures');
-  featEl.innerHTML = '';
-  getFeatures(l).forEach(f => {
-    const item = document.createElement('div');
-    item.className = 'feat-item';
-    item.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>${f}`;
-    featEl.appendChild(item);
-  });
-
-  // Accordion
-  const accEl = document.getElementById('detailAccordion');
-  accEl.innerHTML = '';
-  getAccordionData(l).forEach(section => {
-    const item = document.createElement('div');
-    item.className = 'accordion-item' + (section.open ? ' open' : '');
-    const chevron = `<svg class="accordion-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
-    const trigger = document.createElement('button');
-    trigger.className = 'accordion-trigger';
-    trigger.innerHTML = `<span class="accordion-icon-wrap">${section.icon}</span><span class="accordion-trigger-label">${section.title}</span>${chevron}`;
-    trigger.addEventListener('click', () => item.classList.toggle('open'));
-    const content = document.createElement('div');
-    content.className = 'accordion-content';
-    section.groups.forEach(group => {
-      const g = document.createElement('div');
-      g.className = 'accordion-group';
-      g.innerHTML = `<div class="accordion-group-title">${group.title}</div>`;
-      const ul = document.createElement('ul');
-      ul.className = 'accordion-list';
-      group.items.forEach(text => { const li = document.createElement('li'); li.textContent = text; ul.appendChild(li); });
-      g.appendChild(ul);
-      content.appendChild(g);
-    });
-    item.appendChild(trigger);
-    item.appendChild(content);
-    accEl.appendChild(item);
-  });
-
-  // Calculator
-  renderCalculator(l);
-
-  // Tour scheduler
-  _tourSelectedDay = null;
-  _tourSelectedTime = null;
-  const tourDaysEl = document.getElementById('tourDays');
-  tourDaysEl.innerHTML = '';
-  const tourTimesWrap = document.getElementById('tourTimesWrap');
-  tourTimesWrap.innerHTML = '';
-  const confirmBtn = document.getElementById('tourConfirmBtn');
-  confirmBtn.style.display = 'none';
-  document.getElementById('tourConfirmed').style.display = 'none';
-
-  getTourDays().forEach(day => {
-    const btn = document.createElement('button');
-    btn.className = 'tour-day-btn';
-    btn.innerHTML = `<span class="day-name">${day.dayName}</span>${day.label}`;
-    btn.addEventListener('click', () => {
-      _tourSelectedDay = day.label;
-      _tourSelectedTime = null;
-      document.querySelectorAll('.tour-day-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-
-      // Render time slots
-      tourTimesWrap.innerHTML = '<div class="tour-times-label">Select a time</div>';
-      const grid = document.createElement('div');
-      grid.className = 'tour-times-grid';
-      getTourTimes().forEach(t => {
-        const tb = document.createElement('button');
-        tb.className = 'tour-time-btn';
-        tb.textContent = t;
-        tb.addEventListener('click', () => {
-          _tourSelectedTime = t;
-          document.querySelectorAll('.tour-time-btn').forEach(b => b.classList.remove('selected'));
-          tb.classList.add('selected');
-          confirmBtn.style.display = 'block';
-        });
-        grid.appendChild(tb);
-      });
-      tourTimesWrap.appendChild(grid);
-      confirmBtn.style.display = 'none';
-    });
-    tourDaysEl.appendChild(btn);
-  });
-
-  confirmBtn.onclick = () => {
-    confirmBtn.style.display = 'none';
-    document.getElementById('tourConfirmed').style.display = 'flex';
-  };
-
-  // Contact
-  document.getElementById('detailContactBtn').onclick = () => openLeadModal(l);
-
-  // Open overlay
   const overlay = document.getElementById('detailModal');
   overlay.classList.add('open');
   overlay.setAttribute('aria-hidden', 'false');
   document.body.style.overflow = 'hidden';
+
+  // Reset scroll
+  const left = document.getElementById('dmLeft');
+  const right = document.getElementById('dmRight');
+  if (left) left.scrollTop = 0;
+  if (right) right.scrollTop = 0;
+
+  // Focus first element
+  setTimeout(() => { document.getElementById('dmBack')?.focus(); }, 50);
 
   if (map) map.panTo({ lat: l.lat, lng: l.lng });
   highlightCard(l.id);
@@ -712,20 +811,41 @@ function closeDetailModal() {
   overlay.classList.remove('open');
   overlay.setAttribute('aria-hidden', 'true');
   document.body.style.overflow = '';
+  history.pushState(null, '', window.location.pathname + window.location.search);
 }
 
-// Wire detail modal events
+// ── Wire events ──
+
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('detailClose')?.addEventListener('click', closeDetailModal);
-  document.getElementById('galleryPrev')?.addEventListener('click', () => {
-    const next = (_galleryIndex - 1 + _galleryPhotos.length) % _galleryPhotos.length;
-    showPhoto(next);
-  });
-  document.getElementById('galleryNext')?.addEventListener('click', () => {
-    showPhoto((_galleryIndex + 1) % _galleryPhotos.length);
-  });
+  document.getElementById('dmClose')?.addEventListener('click', closeDetailModal);
+  document.getElementById('dmBack')?.addEventListener('click', closeDetailModal);
+  document.getElementById('dmPrev')?.addEventListener('click', () => navigateModal(-1));
+  document.getElementById('dmNext')?.addEventListener('click', () => navigateModal(1));
+
+  // Scrim click closes
   document.getElementById('detailModal')?.addEventListener('click', e => {
     if (e.target === e.currentTarget) closeDetailModal();
+  });
+
+  // Keyboard: Esc close, ←→ navigate, Tab trap
+  document.addEventListener('keydown', e => {
+    const modal = document.getElementById('detailModal');
+    if (!modal || !modal.classList.contains('open')) return;
+    if (e.key === 'Escape') { closeDetailModal(); return; }
+    if (e.key === 'ArrowLeft') { navigateModal(-1); return; }
+    if (e.key === 'ArrowRight') { navigateModal(1); return; }
+    if (e.key === 'Tab') {
+      const focusable = Array.from(modal.querySelectorAll(
+        'button:not([disabled]),[href],input:not([disabled]),select,textarea'
+      ));
+      if (!focusable.length) return;
+      const first = focusable[0], last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault(); last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault(); first.focus();
+      }
+    }
   });
 });
 

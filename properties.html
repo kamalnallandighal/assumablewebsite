@@ -74,22 +74,45 @@
       /* ── Filter bar ── */
       .filter-bar {
         background: #fff; border-bottom: 1px solid var(--a-line);
-        padding: 12px 24px; display: flex; align-items: center;
-        justify-content: space-between; gap: 10px; flex-shrink: 0;
-        font-family: var(--a-sans);
+        padding: 14px 32px; display: flex; align-items: center;
+        justify-content: space-between; gap: 12px; flex-shrink: 0;
+        font-family: var(--a-sans); width: 100%;
       }
-      .filter-chips { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .filter-chips { display: flex; align-items: center; gap: 10px; flex-wrap: nowrap; }
       .filter-chip {
-        display: inline-flex; align-items: center; gap: 6px;
-        padding: 8px 14px; font-size: 13px; font-weight: 500; cursor: pointer;
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: 9px 16px; font-size: 13px; font-weight: 500; cursor: pointer;
         border: 1px solid var(--a-line-2); border-radius: var(--a-r-pill);
         background: #fff; color: var(--a-ink); white-space: nowrap;
         position: relative; user-select: none; transition: border-color .15s;
       }
       .filter-chip:hover { border-color: var(--a-ink); }
       .filter-chip-active { background: var(--a-ink); color: #fff; border-color: var(--a-ink); }
-      .filter-chip-location { cursor: default; }
-      .filter-chip-location:hover { border-color: var(--a-line-2); }
+      /* Location dropdown */
+      .filter-dropdown-location { min-width: 320px; padding: 0; overflow: hidden; }
+      .dd-location-search {
+        display: flex; align-items: center; gap: 10px;
+        padding: 14px 16px; border-bottom: 1px solid var(--a-line);
+      }
+      .dd-location-search input {
+        border: none; outline: none; font-size: 14px; font-family: var(--a-sans);
+        color: var(--a-ink); background: transparent; flex: 1;
+      }
+      .dd-location-search input::placeholder { color: var(--a-muted); }
+      .dd-location-search svg { flex-shrink: 0; color: var(--a-muted); }
+      .dd-location-body { padding: 8px 0; max-height: 320px; overflow-y: auto; }
+      .dd-location-heading {
+        font-size: 11px; font-weight: 700; letter-spacing: .08em;
+        color: var(--a-muted); padding: 8px 16px 6px;
+      }
+      .dd-city-item {
+        display: flex; align-items: center; gap: 10px;
+        padding: 11px 16px; font-size: 14px; font-weight: 500; cursor: pointer;
+        color: var(--a-ink); transition: background .1s;
+      }
+      .dd-city-item:hover { background: var(--a-cream); }
+      .dd-city-item.active { color: var(--a-navy); font-weight: 600; }
+      .dd-city-item svg { flex-shrink: 0; color: var(--a-muted); }
       .assumable-toggle { cursor: pointer; }
       .toggle-dot {
         width: 8px; height: 8px; border-radius: 50%;
@@ -118,12 +141,65 @@
       }
       .dd-input:focus, .dd-select:focus { border-color: var(--a-ink); }
 
-      /* ── Secondary row ── */
-      .secondary-row {
-        display: flex; justify-content: space-between; align-items: center;
-        padding: 12px 24px; background: var(--a-cream);
-        border-bottom: 1px solid var(--a-line);
-        flex-shrink: 0; font-family: var(--a-sans);
+      /* Loan type radio options */
+      .dd-loan-opts { display: flex; flex-direction: column; gap: 4px; }
+      .dd-loan-opt {
+        display: flex; align-items: center; gap: 10px;
+        padding: 9px 12px; border-radius: 8px; cursor: pointer;
+        font-size: 13px; font-weight: 500; color: var(--a-ink);
+        transition: background .12s;
+      }
+      .dd-loan-opt:hover { background: var(--a-cream); }
+      .dd-loan-opt input[type="radio"] { accent-color: var(--a-ink); width: 15px; height: 15px; cursor: pointer; }
+
+      /* Beds & baths dropdown */
+      .filter-dropdown-bb { min-width: 340px; padding: 0; }
+      .dd-bb-section { padding: 20px 20px 4px; }
+      .dd-bb-label { font-size: 13px; font-weight: 600; color: var(--a-ink); margin-bottom: 12px; }
+      .dd-bb-row { display: flex; border: 1px solid var(--a-line-2); border-radius: 10px; overflow: hidden; }
+      .dd-bb-btn {
+        flex: 1; padding: 10px 4px; font-size: 13px; font-weight: 500;
+        background: #fff; color: var(--a-ink); border: none; border-right: 1px solid var(--a-line-2);
+        cursor: pointer; transition: background .1s; white-space: nowrap;
+      }
+      .dd-bb-btn:last-child { border-right: none; }
+      .dd-bb-btn:hover { background: var(--a-cream); }
+      .dd-bb-btn.active { background: var(--a-ink); color: #fff; }
+      .dd-bb-apply { padding: 16px 20px; border-top: 1px solid var(--a-line); margin-top: 16px; }
+      .dd-bb-apply-btn {
+        width: 100%; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 600;
+        background: var(--a-ink); color: #fff; border: none; cursor: pointer;
+        transition: opacity .15s;
+      }
+      .dd-bb-apply-btn:hover { opacity: .88; }
+
+      /* ──────────── RESPONSIVE ──────────── */
+      @media (max-width: 768px) {
+        /* Nav */
+        .a-nav { padding: 0 16px; height: 56px; }
+        .a-nav-links { display: none; }
+        .a-nav-actions .a-btn-ghost { display: none; }
+
+        /* Filter bar — horizontal scroll the chips */
+        .filter-bar { padding: 10px 12px; gap: 8px; }
+        .filter-chips {
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          flex-wrap: nowrap;
+          max-width: 100%;
+        }
+        .filter-chips::-webkit-scrollbar { display: none; }
+        .filter-chip { flex-shrink: 0; }
+        .filter-bar-right { display: none; }
+
+        /* Filter dropdowns — fit viewport */
+        .filter-dropdown {
+          left: 0; right: auto;
+          max-width: calc(100vw - 24px);
+        }
+        .filter-dropdown-location,
+        .filter-dropdown-bb { min-width: min(320px, calc(100vw - 24px)); }
       }
     </style>
   </head>
@@ -148,19 +224,36 @@
   </nav>
 
     <section class="map-area page-container">
-      <!-- FILTER BAR -->
+      <!-- FILTER BAR — full width, above map+cards -->
       <header class="filter-bar">
         <div class="filter-chips">
-          <div class="filter-chip filter-chip-location">
+          <div class="filter-chip" id="chip-location">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4l-6 2v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"/></svg>
-            Phoenix, AZ
+            <span id="chip-location-label">Location</span>
+            <div class="filter-dropdown filter-dropdown-location" id="dd-location">
+              <div class="dd-location-search">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                <input type="text" id="location-input" placeholder="Enter a city or zip code" autocomplete="off"/>
+              </div>
+              <div class="dd-location-body">
+                <div class="dd-location-heading">CITIES</div>
+                <div id="dd-city-list"></div>
+              </div>
+            </div>
           </div>
-          <div class="filter-chip filter-chip-active" id="chip-loan" onclick="toggleLoanFilter()">
-            Loan type: VA, FHA
+          <div class="filter-chip" id="chip-loan">
+            <span id="chip-loan-label">Loan type</span>
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            <div class="filter-dropdown" id="dd-loan">
+              <div class="dd-loan-opts">
+                <label class="dd-loan-opt"><input type="radio" name="loanType" value=""> All types</label>
+                <label class="dd-loan-opt"><input type="radio" name="loanType" value="VA"> VA only</label>
+                <label class="dd-loan-opt"><input type="radio" name="loanType" value="FHA"> FHA only</label>
+              </div>
+            </div>
           </div>
           <div class="filter-chip" id="chip-price">
-            Price
+            <span id="chip-price-label">Price</span>
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
             <div class="filter-dropdown" id="dd-price">
               <div class="dd-row">
@@ -173,47 +266,45 @@
               </div>
             </div>
           </div>
-          <div class="filter-chip" id="chip-beds">
-            Beds
+          <div class="filter-chip" id="chip-beds-baths">
+            <span id="chip-beds-baths-label">Beds &amp; baths</span>
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-            <div class="filter-dropdown" id="dd-beds">
-              <select id="minBeds" class="dd-select">
-                <option value="0">Any beds</option>
-                <option value="1">1+ beds</option>
-                <option value="2">2+ beds</option>
-                <option value="3">3+ beds</option>
-                <option value="4">4+ beds</option>
-              </select>
+            <div class="filter-dropdown filter-dropdown-bb" id="dd-beds-baths">
+              <div class="dd-bb-section">
+                <div class="dd-bb-label">Bedrooms</div>
+                <div class="dd-bb-row" id="dd-beds-row">
+                  <button class="dd-bb-btn active" data-group="beds" data-val="0">Any</button>
+                  <button class="dd-bb-btn" data-group="beds" data-val="1">1+</button>
+                  <button class="dd-bb-btn" data-group="beds" data-val="2">2+</button>
+                  <button class="dd-bb-btn" data-group="beds" data-val="3">3+</button>
+                  <button class="dd-bb-btn" data-group="beds" data-val="4">4+</button>
+                  <button class="dd-bb-btn" data-group="beds" data-val="5">5+</button>
+                </div>
+              </div>
+              <div class="dd-bb-section">
+                <div class="dd-bb-label">Bathrooms</div>
+                <div class="dd-bb-row" id="dd-baths-row">
+                  <button class="dd-bb-btn active" data-group="baths" data-val="0">Any</button>
+                  <button class="dd-bb-btn" data-group="baths" data-val="1">1+</button>
+                  <button class="dd-bb-btn" data-group="baths" data-val="1.5">1.5+</button>
+                  <button class="dd-bb-btn" data-group="baths" data-val="2">2+</button>
+                  <button class="dd-bb-btn" data-group="baths" data-val="3">3+</button>
+                  <button class="dd-bb-btn" data-group="baths" data-val="4">4+</button>
+                </div>
+              </div>
+              <div class="dd-bb-apply">
+                <button class="dd-bb-apply-btn" id="dd-bb-apply">Apply</button>
+              </div>
             </div>
           </div>
-          <label class="filter-chip assumable-toggle">
-            <input id="assumableOnly" type="checkbox" style="display:none" checked>
-            <span class="toggle-dot"></span>
-            Assumable only
-          </label>
         </div>
         <div class="filter-bar-right">
           <span class="count" id="resultCount"></span>
         </div>
       </header>
 
-      <!-- SECONDARY ROW -->
-      <div class="secondary-row">
-        <div id="secondary-count" style="font-size:14px;color:var(--a-ink)">
-          Loading listings<span style="color:var(--a-muted-2)"> · All VA &amp; FHA assumable · Rates from 2.625%</span>
-        </div>
-        <div style="font-size:13px;color:var(--a-muted-2)">
-          <span style="color:var(--a-terra-ink);font-weight:600">+ 47 off-market homes available</span> —
-          <a href="index.html#off-market" style="color:var(--a-ink);text-decoration:underline;text-underline-offset:3px">unlock list</a>
-        </div>
-      </div>
-
       <main class="layout">
-        <!-- Listings column: 2-col card grid -->
-        <aside class="sidebar" id="sidebar">
-          <div id="card-grid" class="card-grid"></div>
-        </aside>
-        <!-- Map panel -->
+        <!-- Map panel (left) -->
         <section class="map-wrap">
           <div id="map"></div>
           <!-- Map overlay controls (top-left) -->
@@ -229,118 +320,45 @@
             <button class="map-zoom-btn" onclick="if(window.map) map.setZoom(map.getZoom()+1)">+</button>
             <button class="map-zoom-btn" style="border-top:1px solid var(--line)" onclick="if(window.map) map.setZoom(map.getZoom()-1)">−</button>
           </div>
-          <!-- Map pop card (appears when a pin is selected) -->
-          <div id="map-pop" class="map-pop" style="display:none"></div>
         </section>
+
+        <!-- Right panel: card grid -->
+        <div class="right-panel">
+          <aside class="sidebar" id="sidebar">
+            <div id="card-grid" class="card-grid"></div>
+          </aside>
+        </div>
       </main>
     </section>
-      <!-- Property Detail Modal -->
-      <div id="detailModal" class="detail-overlay" aria-hidden="true">
-        <div class="detail-panel">
-          <button class="detail-close" id="detailClose">&times;</button>
-
-          <!-- Gallery -->
-          <div class="detail-gallery-wrap">
-            <img id="galleryImg" class="gallery-img" src="" alt="Property photo" />
-            <button class="gallery-btn gallery-prev" id="galleryPrev">&#8249;</button>
-            <button class="gallery-btn gallery-next" id="galleryNext">&#8250;</button>
-            <div class="gallery-footer">
-              <div id="galleryDots" class="gallery-dots"></div>
-              <div id="galleryCount" class="gallery-count">1 / 5</div>
+      <!-- Property Detail Modal (v2 — Zillow-style 2-col) -->
+      <div id="detailModal" class="dm-scrim" role="dialog" aria-modal="true" aria-labelledby="dmAddress" aria-hidden="true">
+        <div class="dm-shell">
+          <div class="dm-topbar">
+            <div class="dm-topbar-l">
+              <button class="dm-back" id="dmBack">← Back to map</button>
+              <span class="dm-counter" id="dmCounter" aria-live="polite"></span>
+              <div class="dm-pn">
+                <button class="dm-pn-btn" id="dmPrev" aria-label="Previous listing">‹</button>
+                <button class="dm-pn-btn" id="dmNext" aria-label="Next listing">›</button>
+              </div>
+            </div>
+            <div class="dm-topbar-r">
+              <button class="dm-ghost-btn" id="dmShare">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                Share
+              </button>
+              <button class="dm-ghost-btn" id="dmSave">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 5.6a5.5 5.5 0 00-7.8 0L12 6.6l-1-1a5.5 5.5 0 00-7.8 7.8L12 22l8.8-8.6a5.5 5.5 0 000-7.8z"/></svg>
+                Save
+              </button>
+              <button class="dm-x-btn" id="dmClose" aria-label="Close">×</button>
             </div>
           </div>
-
-          <!-- Scrollable Body -->
-          <div class="detail-body">
-
-            <!-- Header -->
-            <div class="detail-header-block">
-              <div class="detail-price-row">
-                <span id="detailPrice" class="detail-price"></span>
-                <div id="detailBadges" class="detail-badges"></div>
-              </div>
-              <div id="detailAddress" class="detail-address"></div>
-              <div id="detailMetaPills" class="detail-meta-pills"></div>
-            </div>
-
-            <!-- About -->
-            <div class="detail-card">
-              <h3 class="detail-card-title">About this home</h3>
-              <p id="detailDescription" class="detail-description"></p>
-            </div>
-
-            <!-- Features -->
-            <div class="detail-card">
-              <h3 class="detail-card-title">Features</h3>
-              <div id="detailFeatures" class="feat-grid"></div>
-            </div>
-
-            <!-- Property Details Accordion -->
-            <div class="detail-card">
-              <h3 class="detail-card-title">Property Details</h3>
-              <div id="detailAccordion" class="detail-accordion"></div>
-            </div>
-
-            <!-- Payment Calculator -->
-            <div class="detail-card">
-              <h3 class="detail-card-title">Payment Calculator</h3>
-              <div class="calc-monthly-row">
-                <span id="calcMonthlyAmount" class="calc-monthly-amount"></span>
-                <span class="calc-per-month">per month</span>
-              </div>
-              <p class="calc-note-text">In an assumption, your down payment equals the seller's equity. You'll need at least 5% in cash, and the rest can be covered with secondary financing.</p>
-              <div class="calc-slider-header">
-                <span>How much can you bring down?</span>
-                <span id="calcDownDisplay" class="calc-down-value"></span>
-              </div>
-              <input type="range" id="calcSlider" class="calc-slider" />
-              <div class="calc-slider-labels">
-                <span id="calcSliderMin"></span>
-                <span id="calcSliderMax"></span>
-              </div>
-              <div id="calcComparison" class="calc-comparison">
-                <div class="calc-comp-card assumed">
-                  <div class="calc-comp-label">Assumed rate</div>
-                  <div id="calcAssumedRate" class="calc-comp-rate"></div>
-                  <div id="calcAssumedPayment" class="calc-comp-payment"></div>
-                </div>
-                <div class="calc-comp-card">
-                  <div class="calc-comp-label">Market rate</div>
-                  <div id="calcMarketRate" class="calc-comp-rate"></div>
-                  <div id="calcMarketPayment" class="calc-comp-payment"></div>
-                </div>
-              </div>
-              <div id="calcSavingsBanner" class="calc-savings-banner" style="display:none">
-                <span class="calc-savings-label">You save with this assumable rate</span>
-                <div style="display:flex;align-items:baseline;gap:8px;">
-                  <span id="calcSavingsAmount" class="calc-savings-amount"></span>
-                  <span id="calcSavingsTotal" style="font-size:12px;opacity:0.75;"></span>
-                </div>
-              </div>
-              <div id="calcNotAssumable" class="calc-not-assumable" style="display:none">
-                This listing does not have an assumable mortgage.
-              </div>
-            </div>
-
-            <!-- Tour Scheduler -->
-            <div class="detail-card">
-              <h3 class="detail-card-title">Schedule a Tour</h3>
-              <div id="tourDays" class="tour-days-row"></div>
-              <div id="tourTimesWrap"></div>
-              <button id="tourConfirmBtn" class="btn-confirm-tour" style="display:none">Confirm Tour</button>
-              <div id="tourConfirmed" class="tour-confirmed" style="display:none">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                Tour request sent! We'll confirm your appointment shortly.
-              </div>
-            </div>
-
-            <!-- Contact -->
-            <div class="detail-contact-row">
-              <button id="detailContactBtn" class="btn-contact-agent">Contact Agent</button>
-            </div>
-
-          </div><!-- .detail-body -->
-        </div><!-- .detail-panel -->
+          <div class="dm-body">
+            <div class="dm-left" id="dmLeft"></div>
+            <div class="dm-right" id="dmRight"></div>
+          </div>
+        </div>
       </div><!-- #detailModal -->
 
       <!-- Lead capture modal -->

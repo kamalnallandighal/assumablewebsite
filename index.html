@@ -124,7 +124,7 @@
       font-family: var(--serif); font-weight: 400; font-size: 68px;
       line-height: 1.02; letter-spacing: -.02em;
     }
-    .hero-h1 em { font-style: italic; color: var(--navy); }
+    .hero-h1 .hero-accent { color: var(--terra); }
     .hero-stats {
       display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
       max-width: 460px; margin-top: 40px;
@@ -287,6 +287,89 @@
     .stagger.visible > *:nth-child(1) { opacity:1; transform:none; transition-delay:.05s }
     .stagger.visible > *:nth-child(2) { opacity:1; transform:none; transition-delay:.15s }
     .stagger.visible > *:nth-child(3) { opacity:1; transform:none; transition-delay:.25s }
+
+    /* ──────────── RESPONSIVE: tablet ──────────── */
+    @media (max-width: 980px) {
+      .hero-inner { grid-template-columns: 1fr; gap: 48px; }
+      .hero-h1 { font-size: 52px; }
+      .hero-stats { max-width: none; }
+      .how-grid { grid-template-columns: 1fr 1fr; gap: 24px; }
+      .featured-grid { grid-template-columns: 1fr 1fr !important; }
+      .dual-grid { grid-template-columns: 1fr; }
+      .stat-strip { grid-template-columns: 1fr 1fr; gap: 16px 0; }
+      .stat-cell:nth-child(3) { border-left: none; }
+    }
+
+    /* ──────────── RESPONSIVE: phone ──────────── */
+    @media (max-width: 720px) {
+      /* Nav */
+      .nav { padding: 0 16px; height: 60px; }
+      .nav-links { display: none; }
+      .nav-actions .btn-ghost { display: none; }
+
+      /* Hero */
+      .hero-section { padding: 40px 20px 56px; }
+      .hero-h1 { font-size: 38px; line-height: 1.05; }
+      .hero-stats { grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 28px; max-width: none; }
+      .hero-stat-num { font-size: 26px; }
+
+      /* Funnel card */
+      .funnel-card { padding: 24px 20px; border-radius: 20px; }
+      .funnel-h { font-size: 28px; }
+      .funnel-pill { left: 16px; }
+      .funnel-footer { flex-wrap: wrap; gap: 10px; }
+      .funnel-footer > * { flex: 1 1 auto; }
+
+      /* Funnel inline grids — stack */
+      .fn-stack-md { grid-template-columns: 1fr !important; gap: 16px !important; }
+      .fn-city-grid { grid-template-columns: 1fr 1fr !important; }
+      .fn-result-cta { flex-direction: column; align-items: stretch !important; }
+      .fn-result-cta-row { flex-direction: column; }
+      .fn-result-cta-row .input { min-width: 0 !important; }
+
+      /* Step price label — shrink large numerals */
+      .funnel-body [style*="font-size:56px"] { font-size: 36px !important; }
+
+      /* Sections */
+      .how-section, .featured-section, .dual-section, .faq-section { padding: 56px 20px; }
+      .agent-section { padding: 64px 20px; }
+      footer { padding: 32px 20px 40px; }
+
+      /* Section headlines (inline 40-48px serif) */
+      .how-section h2, .featured-section h2, .faq-section h2, .dual-section h2 { font-size: 30px !important; }
+      .agent-section h2 { font-size: 38px !important; line-height: 1.08 !important; }
+      .agent-section [style*="font-size:17px"] { font-size: 15px !important; margin-top: 24px !important; }
+
+      /* Grids */
+      .how-grid { grid-template-columns: 1fr; gap: 28px; margin-top: 32px; }
+      .how-num { font-size: 40px; }
+      .featured-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
+      .featured-head { flex-direction: column; align-items: flex-start !important; gap: 12px; }
+
+      /* Investor / off-market dual */
+      .dual-grid > div { padding: 28px 22px !important; }
+      .dual-grid h3 { font-size: 26px !important; }
+      #offmarket-form { flex-direction: column; max-width: none !important; }
+
+      /* FAQ */
+      summary { font-size: 16px; }
+
+      /* Agent section */
+      .stat-strip { grid-template-columns: 1fr 1fr; padding: 20px 0; gap: 18px 0; }
+      .stat-cell { border-left: none; padding: 0 14px; }
+      .stat-num { font-size: 28px; }
+      .contact-pill { flex-wrap: wrap; justify-content: center; }
+
+      /* Footer */
+      .footer-row { flex-direction: column; align-items: flex-start; }
+    }
+
+    /* ──────────── RESPONSIVE: small phone ──────────── */
+    @media (max-width: 380px) {
+      .hero-h1 { font-size: 32px; }
+      .funnel-h { font-size: 24px; }
+      .fn-city-grid { grid-template-columns: 1fr !important; }
+    }
   </style>
 </head>
 <body>
@@ -316,10 +399,10 @@
       <div>
         <div class="eyebrow" style="margin-bottom:20px">Arizona · 331 assumable listings</div>
         <h1 class="hero-h1">
-          Homes with mortgages<br>you can take over at <em>2–4%</em>.
+          Shop Arizona homes<br>with <span class="hero-accent">2–4%</span> assumable mortgages.
         </h1>
         <p style="margin-top:22px;font-size:17px;line-height:1.55;color:var(--muted-2);max-width:500px">
-          Tell us what you're looking for. We'll show you every assumable home in Arizona that matches — VA, FHA, on-market and off.
+          Every VA, FHA and USDA listing in the Valley with a takeover-ready loan — on-market and off. Save $1,500+ a month versus today's rates.
         </p>
 
         <div class="hero-stats" id="hero-stats">
@@ -388,7 +471,7 @@
   <!-- ── FEATURED LISTINGS ── -->
   <section class="featured-section" id="featured">
     <div class="section-inner">
-      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:28px">
+      <div class="featured-head" style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:28px">
         <div class="reveal">
           <div class="eyebrow">Best deals this week</div>
           <h2 style="font-family:var(--serif);font-weight:400;font-size:40px;letter-spacing:-.02em;margin-top:10px">
@@ -397,7 +480,7 @@
         </div>
         <a href="properties.html" style="font-size:14px;color:var(--ink)">See all 331 →</a>
       </div>
-      <div id="featured-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+      <div id="featured-grid" class="featured-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
         <!-- Populated by JS -->
       </div>
     </div>
@@ -541,7 +624,7 @@
 
   <!-- ── FOOTER ── -->
   <footer>
-    <div style="max-width:1160px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-end">
+    <div class="footer-row" style="max-width:1160px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
       <div>
         <div style="font-family:var(--serif);font-size:22px;letter-spacing:-.02em">Assumable</div>
         <div style="font-size:12px;color:var(--muted-2);margin-top:6px">Licensed in Arizona · Jeff Salazar, Realtor · (602) 332-3860</div>
@@ -645,7 +728,7 @@
       </button>`;
     }).join('');
     return `
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">${chips}</div>
+      <div class="fn-city-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">${chips}</div>
       <div style="margin-top:16px;display:flex;align-items:center;gap:8px">
         <input type="checkbox" id="anywhere-chk" style="accent-color:var(--ink)">
         <label for="anywhere-chk" style="font-size:13px;color:var(--muted-2);cursor:pointer">Open to anywhere in AZ</label>
@@ -659,7 +742,7 @@
     const pr = funnelState.maxPrice;
     const prPct = ((pr - 200) / (1000 - 200) * 100).toFixed(1);
     return `
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px">
+      <div class="fn-stack-md" style="display:grid;grid-template-columns:1fr 1fr;gap:32px">
         <div>
           <label style="font-size:12px;font-weight:600;color:var(--muted-2);text-transform:uppercase;letter-spacing:.08em">Max monthly payment</label>
           <div style="margin-top:16px">
@@ -727,7 +810,7 @@
       { tag:'FHA', label:'FHA assumables', desc:'Slightly higher rates but smaller down. Must be your primary residence.', count:147 },
       { tag:'Any', label:'Show me both',   desc:"Surface everything, I'll filter later.", count:331 },
     ];
-    return `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">` +
+    return `<div class="fn-stack-md" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">` +
       opts.map(o => {
         const sel = funnelState.loanType === o.tag;
         const tagClass = o.tag === 'VA' ? 'tag-va' : o.tag === 'FHA' ? 'tag-fha' : 'tag';
@@ -753,7 +836,7 @@
       { key:'primary',    label:'Primary residence',    desc:"I'll live there. Both VA and FHA assumables work." },
       { key:'investment', label:'Investment / rental',  desc:'I plan to rent it. Only VA assumables qualify — Jeff will share ROI numbers too.' },
     ];
-    return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">` +
+    return `<div class="fn-stack-md" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">` +
       opts.map(o => {
         const sel = funnelState.useType === o.key;
         return `<div onclick="setFunnelVal('useType','${o.key}')" style="
@@ -772,12 +855,19 @@
 
   function stepResultHTML() {
     const preview = [
-      { addr:'1820 N Central Ave', rate:'2.99%', mo:'$1,621/mo', tag:'VA',  photo:'https://picsum.photos/seed/phx1/300/200' },
-      { addr:'1205 E Coronado Rd',  rate:'2.75%', mo:'$2,143/mo', tag:'VA',  photo:'https://picsum.photos/seed/phx8/300/200' },
-      { addr:'2240 W Baseline Rd',  rate:'3.125%', mo:'$1,797/mo', tag:'VA', photo:'https://picsum.photos/seed/mesa1/300/200' },
+      { addr:'1820 N Central Ave', rate:'2.99%', mo:'$1,621/mo', tag:'VA', photo:'https://picsum.photos/seed/phx1/300/200', id:'1' },
+      { addr:'1205 E Coronado Rd',  rate:'2.75%', mo:'$2,143/mo', tag:'VA', photo:'https://picsum.photos/seed/phx8/300/200', id:'8' },
+      { addr:'2240 W Baseline Rd',  rate:'3.125%', mo:'$1,797/mo', tag:'VA', photo:'https://picsum.photos/seed/mesa1/300/200', id:'11' },
     ];
+    const params = new URLSearchParams();
+    if (funnelState.cities.length) params.set('cities', funnelState.cities.join(','));
+    if (funnelState.maxMonthly !== 2400) params.set('maxMonthly', funnelState.maxMonthly);
+    if (funnelState.maxPrice !== 550) params.set('maxPrice', funnelState.maxPrice * 1000);
+    if (funnelState.minBeds) params.set('minBeds', funnelState.minBeds);
+    if (funnelState.loanType) params.set('loan', funnelState.loanType);
+    const qs = params.toString() ? '?' + params.toString() : '';
     const cards = preview.map(h => `
-      <div class="mini-card">
+      <a href="properties.html${qs}#listing/${h.id}" class="mini-card" style="text-decoration:none;display:block;cursor:pointer">
         <div style="height:120px;overflow:hidden">
           <img src="${h.photo}" alt="${h.addr}" style="width:100%;height:100%;object-fit:cover">
         </div>
@@ -786,16 +876,16 @@
           <div style="font-size:13px;font-weight:600;margin-top:8px">${h.addr}</div>
           <div style="font-size:12px;color:var(--navy);margin-top:4px;font-weight:500">${h.mo}</div>
         </div>
-      </div>
+      </a>
     `).join('');
     return `
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">${cards}</div>
-      <div style="margin-top:20px;padding:20px;background:var(--cream);border-radius:16px;display:flex;justify-content:space-between;align-items:center;gap:16px">
+      <div class="fn-stack-md" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">${cards}</div>
+      <div class="fn-result-cta" style="margin-top:20px;padding:20px;background:var(--cream);border-radius:16px;display:flex;justify-content:space-between;align-items:center;gap:16px">
         <div>
           <div style="font-size:14px;font-weight:600">Want Jeff to hand-pick 3 that fit you?</div>
           <div style="font-size:12px;color:var(--muted-2);margin-top:4px">He'll send them by email + set up a tour if you want one.</div>
         </div>
-        <div style="display:flex;gap:8px;flex-shrink:0">
+        <div class="fn-result-cta-row" style="display:flex;gap:8px;flex-shrink:0">
           <input class="input" type="email" placeholder="you@email.com" id="funnel-email" style="min-width:200px">
           <button class="btn btn-navy" onclick="submitFunnelEmail()">Send my matches</button>
         </div>
