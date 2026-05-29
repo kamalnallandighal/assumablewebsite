@@ -1,16 +1,56 @@
 # Assumable Homes — Claude notes
 
-## Project status (as of 2026-05-26)
+## Project status (as of 2026-05-29)
 
-Deployed to Vercel via GitHub (`kamalnallandighal/assumablewebsite`). Static site, also runs locally with `python3 -m http.server 8000`.
+Deployed to Vercel via GitHub (`kamalnallandighal/assumablewebsite`). Local dev: `npm run dev` (Next.js, port 3000 — falls back to 3001 because another local project occupies 3000).
 
-**Active branch: `redesign`** — full visual redesign implemented from a design handoff package at `/Users/knallandighal/Downloads/design_handoff_assumable_homes`. Branch `main` is preserved as-is and is the current Vercel production deploy. Do not push `redesign` until the user confirms they're happy with it.
+**Active branch: `next-rebuild`** — Next.js 15 + TS + Tailwind + Mapbox app. Replaces the static `index.html` / `properties.html` / `styles.css` / `app.js` (deleted 2026-05-27). 28 unit tests pass. Not yet pushed to remote. `redesign` branch preserved as the design reference. `main` is still the Vercel production deploy (the old static site).
 
-Mobile responsiveness pass landed 2026-05-26 (uncommitted) — see "Responsive design" section below.
+**🟢 Cotality data pipeline VALIDATED (2026-05-29).** The core product thesis is unblocked — Cotality's enriched endpoint returns actual interest rates with confidence ranks for fixed-rate FHA/VA loans in Arizona. See "Cotality validation — what we proved" section below for the live test result. The 30-day trial includes the enriched tier (no paid upgrade required for validation). What remains is wiring the enriched endpoint into `lib/cotality/client.ts` and extending the probe — see "What's left to wire up" below.
 
-**Migration to Next.js 15 (branch `next-rebuild`)** — landed 2026-05-27. Static `index.html` / `properties.html` / `styles.css` / `app.js` removed; replaced with Next.js App Router under `app/`, components under `components/`, server-side Cotality client + probe under `lib/cotality/`. Tailwind theme mirrors the original design tokens (`ink`, `terra`, `navy`, `ok`, `cream`, `paper`, `line`, `muted`). Mapbox GL replaces Google Maps. 28 unit tests pass. `redesign` branch preserved untouched. `main` is still the Vercel production deploy.
+---
 
-> **Important context disconnect to know about:** the *current* repo is a vanilla HTML/CSS/JS static site using Google Maps + a static `listings.json` of 16 fake Phoenix listings. The *product thesis* below describes a Next.js + Supabase + Mapbox app driven by ARMLS + Cotality data. The static site is the current marketing/UX prototype; the real product backend has not been built. **Do not start the Next.js rebuild or migrate listings off `listings.json` until the Cotality data pipeline is validated** (see "Current blocker" below).
+## Cotality validation — what we proved (2026-05-29)
+
+Live test against **2208 N 78th Gln, Phoenix, AZ 85035** (real address user provided). Response from `GET /v2/properties/liens/enriched/3129147428`:
+
+| Field | Value | Confidence |
+|---|---|---|
+| `enrichedInterestRate` | **2.8** (2.8%) | **5 / Excellent** |
+| `enrichedInterestRateTypeCode` | **FIX** (fixed-rate) | **4 / Very Good** |
+| `enrichedLoanTypeCode` | **VA** | **5 / Excellent** |
+| `enrichedTerm` | 30 years | 5 |
+| `unpaidPrincipalBalance` | **$233,126** | **5** |
+| `presentLTV` | 67% | 5 |
+| `ltv` (at origination) | 96% | 3 |
+| `estimatedEquity` | $84,158 | — |
+| `purchaseAmount` / `purchaseRecordingDate` | $265,000 / 2021-04-13 | — |
+| `amount` (original loan) | $259,060 (recorded 2022-01-25) | — |
+| `maturityDate` | 2052-02-01 | — |
+| `totalNumberOfOpenMortgageLiens` | **1** (clean primary) | — |
+| `originationLenderDetails.companyName` | PENNYMAC LN SVCS LLC | — |
+| `currentLenderDetails.companyName` | PENNYMAC LN SVCS LLC | — |
+| `countyMortgageCoverageSummary` | Maricopa records 1930–2026-05-22 | — |
+
+**What this means:**
+
+1. **The product pitch ("buy at 2–4%") is literally true** — this is a real 2.8% VA loan still open, confidence 5/5, no estimation involved.
+2. **The trial includes the enriched tier.** No paid upgrade required to validate or build the MVP.
+3. **`enrichedLoanTypeCode` (FHA/VA/CNV) populates with confidence rank** — this is the assumable filter field. Authoritative.
+4. **`unpaidPrincipalBalance` is real** — exact figure for the savings calculator. Buyer's down = sale price − $233K.
+5. **Servicer is exposed** — buyer's title company needs the servicer to process the assumption. Bonus we didn't expect.
+6. **Single open primary lien confirmed** — no piggyback / no HELOC complications.
+
+**Critical auth + behavior corrections we discovered during the test:**
+
+- Header is `Authorization: Bearer <token>`, **NOT** `Authorization: OAuth <token>` (the prior brief was wrong; CoreLogic's V1/Spark uses `OAuth`, V2 uses standard `Bearer`).
+- OAuth token POST requires a `Content-Length` header — `fetch` sets it automatically with `method: 'POST'`, but raw `curl` needs `-d ''` to send an empty body and produce the header (otherwise → 411).
+- `GET /v2/properties/search` returns **HTTP 404 with `{"properties": [], "messages": [...]}`** when no address match — not an empty 200. Client treats 404 as "no hit, null", not as an error.
+- Response payload field is `properties` (plural), not `items`. Code now falls back to both.
+
+The fixes for all four are committed at `1a73316` on `next-rebuild`.
+
+**Today's budget burned:** ~16 calls of 100/day trial cap (token + 8 initial 401s + 1 single-address test + 1 retest + 2 enriched test). Plenty of room left for more validation.
 
 ---
 
@@ -73,56 +113,98 @@ ARMLS retired RETS in December 2023 — **Spark Web API is the only access path*
 - Coverage: ~27,000 active residential listings across Phoenix, Scottsdale, Mesa, Chandler, Tempe, Glendale
 - A full sync at 1,000 records/page = 27 requests — well under the limit. Hourly sync is the plan (ARMLS requires ≤12 hour refresh cadence).
 
-### Cotality Property API V2 (loan classification)
+### Cotality Property API V2 (loan classification + rate)
 
-Cotality = **CoreLogic rebranded (March 2025)**. Contact: **Gene Rinas, Principal Sales Engineer (grinas@cotality.com)** — reached out directly to Jeff and Erik Youngberg-Aspelin pointing us to this API. Full OpenAPI 3.1.0 swagger is at `/Users/knallandighal/Downloads/property-api-v2-openapi3-swagger.json`.
+Cotality = **CoreLogic rebranded (March 2025)**. Contact: **Gene Rinas, Principal Sales Engineer (grinas@cotality.com)** — reached out directly to Jeff and Erik Youngberg-Aspelin pointing us to this API. Full OpenAPI 3.1.0 swagger is at `/Users/knallandighal/Downloads/property-api-v2-openapi3-swagger.json`. Credentials live in `.env.local` (gitignored): `COTALITY_CLIENT_ID` + `COTALITY_CLIENT_SECRET`. Both come from the developer.corelogic.com 30-day trial. CoreLogic's portal labels them "Consumer Key" / "Consumer Secret" — same thing as OAuth `client_id` / `client_secret`.
 
-**Auth:**
+**Trial cap: 100 API calls per day.** The probe route at `/api/cotality/probe` hard-caps at 10 addresses/request (zod). At 2 calls/property the trial supports ~50 properties/day for validation.
+
+**Auth — verified working:**
 ```
 POST https://api1.cotality.com/oauth/token?grant_type=client_credentials
 Authorization: Basic <base64(client_id:client_secret)>
+(POST must include Content-Length — fetch sets it; raw curl needs -d '')
+
+→ { access_token, expires_in, token_type: "Bearer" }
+
+Then every request:
+Authorization: Bearer <access_token>     ← NOT "OAuth <token>"
 ```
 
-**Pipeline endpoints (verified against swagger — corrects a few details from earlier briefs):**
+Token cache lives in `lib/cotality/auth.ts` with a 30s safety window before expiry triggers refetch.
 
-1. **Property search → clipId**
-   ```
-   GET /v2/properties/search?streetAddress=...&state=AZ&zipCode=...&bestMatch=true
-   ```
-   Returns `PropertySearchProductV2`. `clip` is Cotality's unique property identifier (not `clipId` in the path — see correction below).
+#### The 2-call pipeline (verified end-to-end against 2208 N 78th Gln)
 
-2. **Current mortgage** (the money endpoint)
-   ```
-   GET /v2/properties/{clip}/mortgage/current
-   ```
-   Returns `MortgageTransactionProduct` → `items: MortgageDetail[]`. Each `MortgageDetail.mortgageTransactionDetail` contains:
-   - `loanTypeCode` + `loanTypeCodeDescription` — **Conventional / FHA / VA** ← the filter field
-   - `interestRate` — ⚠️ **swagger says "Beginning interest rate per the recorded loan documents for Adjustable Rate Mortgages"** — so this may only be populated for ARMs, not fixed-rate FHA/VA. Validate against real AZ data; if null for fixed loans, document-image OCR becomes mandatory.
-   - `interestRateTypeCode` — Fixed vs ARM
-   - `amount` — original loan amount at recording
-   - `recordingDate` (YYYYMMDD integer)
-   - `mortgageTypeCode` / `purposeCode` — Purchase / Refi / HELOC
-   - `lienPosition` — 1 = primary
-   - `statusIndicator` — open / closed / paid off (filter on "open")
-   - `term`, `termCode`, `dueDate`
-   - `lenderDetail` (separate sub-object) — servicer name
-   - `mortgageArmDetail` (separate sub-object) — ARM index/margin
+**Step 1 — search → clip:**
+```
+GET /v2/properties/search?streetAddress=...&state=AZ&zipCode=...&bestMatch=true&city=...
+```
+Returns `PropertySearchProductV2`. Look for `properties[0].clip` (or `items[0].clip` — code accepts both). **Returns HTTP 404 with `{"properties":[],"messages":[...]}` when no match** — client treats 404 as `null`, not an error.
 
-3. **Document image** (rate fallback for fixed-rate loans)
-   ```
-   GET /v2/properties/document-images/{product}
-     ?fipsCode=04013        (Maricopa County)
-     &recordingDate=YYYYMMDD
-     &documentNumber=...
-     &outputType=PDF|TIFF
-   ```
-   ⚠️ Correction from earlier briefs: this endpoint is **not** `/v2/properties/{clipId}/document-image`. It's a global endpoint keyed by **fipsCode + recordingDate + documentNumber** — all of which you get from the mortgage/current response. Many 2019–2022 AZ deeds of trust include the interest rate in the document body — OCR + regex extracts it.
+**Step 2 — enriched liens → everything we need:**
+```
+GET /v2/properties/liens/enriched/{clip}
+```
+Returns `SingleApiResponseEnrichedLiensRiskData` → `data: EnrichedLiensRiskData` with 4 sub-objects:
 
-4. **Estimated unpaid balance / LTV — not on the basic mortgage endpoint.** Correction from earlier brief: `estimatedUnpaidBalance` and `estimatedLTV` do **not** exist on `MortgageDetail`. They live on the **enriched liens** endpoint:
-   ```
-   GET /v2/properties/liens/enriched/{clip}
-   ```
-   under `EnrichedLienEstimatedPIQ.unpaidPrincipalBalance`, `.presentLTV`, `.presentLTVConfidenceRank`. This is a separate (likely paid-tier) product — check pricing before assuming we get UPB cheaply.
+**`data.openLiens[].mortgageTransactionDetails` (`EnrichedLienMortgageRiskTransaction`)** — the money fields:
+
+| Field | What it is |
+|---|---|
+| `enrichedInterestRate` (+ `enrichedInterestRateConfidenceRank` 1–5) | **Actual fixed or ARM rate, ML-enriched.** This is the gold field. |
+| `enrichedInterestRateTypeCode` (+ rank) | `FIX` / `ADJ` / `BAL` / `NULL`. Confirm `FIX` before quoting a steady rate. |
+| `enrichedLoanTypeCode` (+ rank) | `FHA` / `VA` / `CNV` / `PP` / `SBA` / `EMP`. **The filter field for assumable.** More authoritative than `mortgage/current.loanTypeCode`. |
+| `enrichedTerm` + `enrichedTermCode` (+ ranks) | Loan term + units. `Y` = years. Used for payment calc. |
+| `enrichedMortgageLienPosition` + `enrichedLTV` | Lien priority + LTV at origination (decimal). |
+| `amount` | Origination loan amount. |
+| `mortgageDate` | Borrower signature date (YYYYMMDD). |
+| `maturityDate` | Loan due date. |
+
+**`data.enriched` (`EnrichedLienEstimatedPIQ`)** — balance + LTV:
+
+| Field | What it is |
+|---|---|
+| `unpaidPrincipalBalance` (+ `upbConfidenceRank`) | **What the buyer assumes.** Drives down-payment math: `down = salePrice − UPB`. |
+| `presentLTV` (+ rank) | Current LTV (integer %). |
+| `ltv` (+ rank) | LTV at origination. |
+| `upbAndPLTVRunDate` | When these enriched calcs ran (YYYYMMDD). Use as freshness signal. |
+
+**`data.openLienEquityAndLTV` (`EnrichedLienRiskEquity`)** — equity + history:
+
+| Field | What it is |
+|---|---|
+| `purchaseRecordingDate` + `purchaseAmount` | Last sale date and price — powers a "bought for X in YYYY" line. |
+| `totalNumberOfOpenMortgageLiens` + `totalAmountOfOpenMortgageLiens` | **Critical compliance signal** — assumable requires `1` (clean primary, no piggyback). |
+| `estimatedEquity` | Current equity (THVx AVM-derived). |
+| `estimatedCombinedLTV` | LTV across all open liens. |
+| `purchaseCombinedLTV` | LTV at original purchase. |
+
+**`data.countyMortgageCoverageSummary`** — `firstMortgageDate` / `lastMortgageDate` for the county. Use as trust signal: if a property's `recordingDate` is within Cotality's coverage range, confidence in the rate goes up.
+
+**`data.openLiens[].originationLenderDetails` + `.currentLenderDetails`** — servicer (e.g. `PENNYMAC LN SVCS LLC`). Title company needs this to process the assumption.
+
+**`data.openLiens[].recordedDocumentDetails`** — `recordingDate`, `documentNumber`. Only needed if we want to fall back to OCR (we don't — enriched solves the rate problem).
+
+#### Confidence rank → badge logic
+
+Cotality scale: `5 = Excellent · 4 = Very Good · 3 = Good · 2 = Fair · 1 = Very Low · NULL = not enriched`.
+
+| Rank | UI treatment |
+|---|---|
+| **4 or 5** | Display rate with **"Verified"** badge |
+| 3 | Display rate plain (no badge) |
+| 1 or 2 | Hide rate, show "Rate available — contact agent" |
+| NULL | Same as 1–2 |
+
+For our test property: rate rank 5, type rank 4, loan type rank 5 — all eligible for the Verified badge.
+
+#### What we previously feared but no longer need
+
+These fallback paths were planned in case `interestRate` was null for fixed loans. **The enriched endpoint makes them unnecessary at MVP scope.** Keep them in mind only if Cotality's enriched data quality drops below ~70% rank-4-or-5:
+
+- **`GET /v2/properties/{clip}/mortgage/current`** — basic mortgage record. We dropped this from the default pipeline. Only useful for `documentNumber` (OCR seed) or `statusIndicator` (open/closed). Enriched endpoint is "Open Voluntary Liens" by definition, so the status filter is implicit.
+- **`GET /v2/properties/document-images/mortgage?fipsCode=...&recordingDate=...&documentNumber=...`** — deed-of-trust PDF. Not needed unless we add an OCR-based "Seller-Verified" tier later.
+- **Freddie Mac PMMS rate estimation** — same: not needed for default rate display, only for the "market rate" comparator on each listing.
 
 ### Freddie Mac PMMS (market rate + rate fallback estimate)
 
@@ -140,43 +222,154 @@ Catches agents who typed the rate into the MLS listing description. Cheap, low c
 
 ---
 
-## Full data pipeline (target state)
+## Full data pipeline (validated, target state)
 
 ```
 ARMLS Spark API → active listings (address, fipsCode, etc.)
        ↓
-Cotality /v2/properties/search → clipId per listing
+Cotality /v2/properties/search → clip per listing
        ↓
-Cotality /v2/properties/{clip}/mortgage/current → loanTypeCode + recordingDate + documentNumber + interestRate?
+Cotality /v2/properties/liens/enriched/{clip}
+       → enrichedLoanTypeCode (FHA/VA/CNV) + confidence rank
+       → enrichedInterestRate + confidence rank
+       → enrichedInterestRateTypeCode (FIX/ADJ/BAL) + confidence rank
+       → unpaidPrincipalBalance + confidence rank
+       → presentLTV + estimatedEquity + servicer + etc
        ↓
-Filter: loanTypeCode IN ['FHA','VA'] AND statusIndicator = open AND lienPosition = 1
+Filter: enrichedLoanTypeCode IN ['FHA','VA']
+        AND totalNumberOfOpenMortgageLiens == 1  (clean primary)
+        AND maturityDate > today                  (still active)
        ↓
-If interestRate null (fixed-rate loans) →
-  /v2/properties/document-images/{product}?fipsCode=04013&recordingDate=...&documentNumber=...
-  → OCR PDF → regex extract rate
+Compute: ratingTier = min(loanType.rank, rate.rank, typeCode.rank)
+         badge = ratingTier ≥ 4 ? "Verified" : ratingTier == 3 ? null : "contact-agent"
        ↓
-If still no rate → estimate from recordingDate + Freddie Mac PMMS that week
-       ↓
-(Optional, paid) /v2/properties/liens/enriched/{clip} → UPB + present LTV
-       ↓
-Store in `assumable_flags` with confidence score
+Store in `assumable_flags` with confidence ranks preserved per field
 ```
+
+2 Cotality calls per property. At trial cap (100/day) = ~50 properties/day; production scale (~27K ARMLS listings) requires a paid Cotality tier — pricing conversation with Gene Rinas before commercial launch.
 
 ---
 
-## Current blocker — validate Cotality before building anything else
+## What's left to wire up — Cotality enriched endpoint
 
-**We have not yet tested the Cotality API.** Next action gating all backend work:
+The validation test was a one-off direct curl. The probe route (`/api/cotality/probe`) and `lib/cotality/client.ts` still only call the basic `mortgage/current` endpoint. Next implementation pass:
 
-1. Sign up for 30-day free trial at `developer.corelogic.com`
-2. Run test calls against known Arizona addresses (pick 5–10 properties with known assumable FHA/VA loans)
-3. Confirm:
-   - Does `loanTypeCode` return `FHA` / `VA` for Maricopa County properties?
-   - Does `interestRate` populate for fixed-rate loans, or only ARMs as the schema hints?
-   - If null on fixed loans, does `/v2/properties/document-images/{product}` return a usable PDF, and is the rate extractable via OCR?
-   - What's the enriched-liens pricing tier, and do we actually need UPB at launch?
+### 1. Extend `lib/cotality/types.ts`
 
-**Do not start the Next.js rebuild, schema migration, or any sync worker until this is validated.** The entire product depends on reliably classifying FHA/VA and surfacing a rate.
+Add narrow types for the enriched response. Only the fields we actually consume:
+
+```ts
+export interface EnrichedLienResponse {
+  data: {
+    clip: string;
+    countyMortgageCoverageSummary?: { firstMortgageDate?: number; lastMortgageDate?: number; standardizedCounty?: string; standardizedState?: string };
+    openLienEquityAndLTV?: {
+      purchaseRecordingDate?: number; purchaseAmount?: number;
+      totalNumberOfOpenMortgageLiens?: number; totalAmountOfOpenMortgageLiens?: number;
+      estimatedEquity?: number; estimatedCombinedLTV?: number | null; purchaseCombinedLTV?: number;
+    };
+    enriched?: {
+      unpaidPrincipalBalance?: number; upbConfidenceRank?: number;
+      presentLTV?: number; presentLTVConfidenceRank?: number;
+      ltv?: number; ltvConfidenceRank?: number;
+      upbAndPLTVRunDate?: number;
+    };
+    openLiens?: Array<{
+      mortgageTransactionDetails?: {
+        enrichedInterestRate?: number; enrichedInterestRateConfidenceRank?: number;
+        enrichedInterestRateTypeCode?: 'FIX' | 'ADJ' | 'BAL' | null; enrichedInterestRateTypeCodeConfidenceRank?: number;
+        enrichedLoanTypeCode?: 'FHA' | 'VA' | 'CNV' | 'PP' | 'SBA' | 'EMP' | null; enrichedLoanTypeCodeConfidenceRank?: number;
+        enrichedTerm?: number; enrichedTermCode?: 'Y' | 'M' | 'D' | null;
+        enrichedMortgageLienPosition?: number; enrichedLTV?: number;
+        amount?: number; mortgageDate?: number; maturityDate?: number;
+      };
+      recordedDocumentDetails?: { recordingDate?: number; documentNumber?: string };
+      originationLenderDetails?: { companyName?: string };
+      currentLenderDetails?: { companyName?: string };
+    }>;
+  };
+}
+```
+
+### 2. Add `getEnrichedLiens(clip)` to `lib/cotality/client.ts`
+
+```ts
+export function getEnrichedLiens(clip: string): Promise<EnrichedLienResponse> {
+  return authedGet<EnrichedLienResponse>(`/v2/properties/liens/enriched/${clip}`);
+}
+```
+
+Note: `authedGet` already uses `Bearer` after the 2026-05-29 fix. No new auth work.
+
+### 3. Rewrite `lib/cotality/probe.ts`
+
+Replace the mortgage/current call with the enriched call. Extract a normalized `ProbeResult` so the route response is clean and easy to read:
+
+```ts
+export interface ProbeResult {
+  input: ProbeAddress;
+  clip: string | null;
+  // Loan classification
+  loanType: 'FHA' | 'VA' | 'CNV' | null;
+  loanTypeConfidence: number | null;       // 1–5
+  // Rate
+  interestRate: number | null;             // decimal percent e.g. 2.8
+  interestRateConfidence: number | null;
+  interestRateType: 'FIX' | 'ADJ' | 'BAL' | null;
+  interestRateTypeConfidence: number | null;
+  // Money
+  unpaidBalance: number | null;
+  unpaidBalanceConfidence: number | null;
+  presentLTV: number | null;
+  estimatedEquity: number | null;
+  // Loan details
+  originationAmount: number | null;
+  term: number | null;
+  maturityDate: number | null;             // YYYYMMDD
+  // Servicer
+  servicer: string | null;
+  // Compliance signals
+  openLienCount: number | null;
+  // Badge logic
+  badge: 'verified' | 'plain' | 'contact-agent' | null;
+  error?: string;
+}
+```
+
+Derive `badge` from `min(loanTypeConfidence, interestRateConfidence, interestRateTypeConfidence)` — `>=4` → `verified`, `==3` → `plain`, `<=2` → `contact-agent`, `null` → null.
+
+### 4. Update probe route summary
+
+In `app/api/cotality/probe/route.ts`, the summary should report on what matters now:
+
+```ts
+const summary = {
+  total: results.length,
+  withClip: results.filter(r => r.clip).length,
+  withRate: results.filter(r => r.interestRate != null).length,
+  verifiable: results.filter(r => r.badge === 'verified').length,
+  byLoanType: { FHA: 0, VA: 0, CNV: 0, null: 0 },          // tally
+  avgConfidence: { rate: 0, loanType: 0 }                    // mean of non-null ranks
+};
+```
+
+### 5. Update tests
+
+`tests/lib/cotality.client.test.ts` needs a new test for `getEnrichedLiens(clip)` with a mocked fetch returning a realistic `EnrichedLienResponse` shape. Also add a test that the Bearer header is sent (current tests don't assert the header — they should now that we know the prior `OAuth` value was wrong).
+
+### 6. Update `lib/cotality/probe-defaults.ts`
+
+The 8 default city-stub addresses didn't resolve in Cotality (their search returned `properties: []` for all of them). Either replace them with known-good addresses or accept that the canned probe is mostly for plumbing checks. Suggested replacement: pull 8 random sale-recently addresses from public records (Maricopa Assessor recent sales), or just keep the canned set and document that the POST endpoint is the real path with `--data @addresses.json`.
+
+### 7. (Later) Wire into the listings flow
+
+Once ARMLS Spark access lands via Jeff, the sync worker should: for each new active listing → search → enriched liens → write to `assumable_flags` with all confidence ranks preserved. The `SearchCard` and `DetailModal` components already exist and display rate/payment fields — they'll need a small "Verified" badge addition driven by `badge` from the row.
+
+### Budget plan for next validation pass
+
+- Test 4–6 more known addresses (your network, Jeff's recent showings, or randomized Maricopa recent-sale addresses) at 2 calls each = ~8–12 calls.
+- Goal: confirm the 2.8% / rank 5 result wasn't a lucky single case. If 4+ of 6 properties return rank ≥ 4 on interest rate, the "Verified" badge has solid coverage.
+- Trial budget after today's 16 calls: 84 left. Plenty.
 
 ---
 
@@ -203,9 +396,25 @@ Carry over from the current redesign: design tokens (`--ink`, `--terra`, `--navy
 
 Schema documented at the brief level; full migration SQL not yet committed. Three tables:
 
-- **`listings`** — ARMLS data, synced hourly. Shape mirrors the current `listings.json` fields (`address`, `price`, `beds`, `baths`, `sqft`, `lat`, `lng`, `photo`, etc.) plus ARMLS-specific keys (listing ID, listing broker, listing date, status, fipsCode).
-- **`assumable_flags`** — derived classification per listing. `loan_type` (FHA / VA), `interest_rate`, `rate_source` (cotality_field / document_ocr / pmms_estimate), `unpaid_balance` (nullable, from enriched liens), `confidence` (0–100), `last_evaluated_at`. Indexed on `listing_id` + `loan_type`.
-- **`verifications`** — Jeff's manual verification tier. Confirmed mortgage statement data, attached docs, verified-by user, verified_at. Joined to listings to power the "Verified" badge.
+- **`listings`** — ARMLS data, synced hourly. Shape mirrors the current `listings.json` fields (`address`, `price`, `beds`, `baths`, `sqft`, `lat`, `lng`, `photo`, etc.) plus ARMLS-specific keys (listing ID, listing broker, listing date, status, fipsCode, MLS#).
+
+- **`assumable_flags`** — derived classification per listing, sourced from Cotality enriched liens. One row per listing. Persist:
+  - `listing_id` (FK), `clip` (Cotality property id)
+  - `loan_type` (FHA / VA / CNV) + `loan_type_confidence` (1–5)
+  - `interest_rate` (decimal e.g. 2.8) + `interest_rate_confidence` (1–5)
+  - `interest_rate_type` (FIX / ADJ / BAL) + `interest_rate_type_confidence` (1–5)
+  - `unpaid_balance` + `upb_confidence` (1–5)
+  - `present_ltv` + `ltv_at_origination`
+  - `estimated_equity`, `purchase_amount`, `purchase_recording_date`
+  - `origination_amount`, `origination_recording_date`, `loan_term_years`, `maturity_date`
+  - `servicer_name` (current), `originator_name`
+  - `open_lien_count` (must be 1 for assumable)
+  - `derived_badge` enum: `verified` (min confidence ≥ 4) / `plain` (min == 3) / `contact-agent` (≤ 2 or null)
+  - `cotality_evaluated_at` (when we last hit the enriched endpoint)
+  - `cotality_calc_run_date` (from `upbAndPLTVRunDate`, when Cotality last ran its ML enrichment)
+  Index: `listing_id`, `loan_type`, `derived_badge`.
+
+- **`verifications`** — Jeff's manual verification tier (gold-standard). Confirmed mortgage statement upload, verified rate, verified UPB, attached PDF, verified-by user, verified_at. Joined to `listings` to override the Cotality-derived badge with a "Seller-Verified" tier in the UI.
 
 If a future agent is asked to write the migration, ask the user first — schema is not final.
 
@@ -333,25 +542,38 @@ The original site has a "We proudly partner with UMe" section. This is excluded 
 
 ## Open decisions / next tasks
 
-**Gating task (blocks all backend work):**
-- **Validate Cotality Property API V2 against AZ data** — sign up for the 30-day trial at developer.corelogic.com, run `mortgage/current` against 5–10 known FHA/VA Maricopa County addresses, confirm `loanTypeCode` populates, decide whether `interestRate` is usable or whether document-image OCR is mandatory. See "Current blocker" section.
+**🟢 Validation (DONE 2026-05-29):**
+- [done] Validate Cotality Property API V2 against AZ data — 2208 N 78th Gln returned a real 2.8% VA loan at confidence 5 from the enriched endpoint. Trial includes enriched. See "Cotality validation — what we proved" above.
+
+**Immediate next (Cotality wiring):**
+- Add enriched-liens types to `lib/cotality/types.ts`
+- Add `getEnrichedLiens(clip)` to `lib/cotality/client.ts`
+- Rewrite `lib/cotality/probe.ts` to use the enriched endpoint and produce the normalized `ProbeResult` shape with badge logic
+- Update `app/api/cotality/probe/route.ts` summary to report on rate confidence + verifiable count
+- Add tests covering the new client method and badge derivation
+- Run a 4–6 address sanity sweep to confirm rank-4-or-5 coverage isn't a one-off
+- (Detailed in "What's left to wire up" section above.)
 
 **Static-site polish (can ship independently of data backend):**
-- **[done] Review + ship redesign branch** — superseded by the Next.js migration on `next-rebuild`; `redesign` preserved as the design reference branch
-- Add ARMLS / Fair Housing / broker-attribution / data-timestamp compliance to footer (see "Compliance" section) before launch — missing today
-- **[done] Replace `listings.json`** — now imported via `lib/listings/data.ts` with numeric normalization; same JSON file at `public/listings.json` is still the source
-- **[done] Wire Google Maps → Mapbox** — Mapbox GL in place on `/properties`; `NEXT_PUBLIC_MAPBOX_TOKEN` still TBD (fallback UI renders without it)
+- [done] Review + ship redesign branch — superseded by the Next.js migration on `next-rebuild`; `redesign` preserved as the design reference branch
+- [done] Replace `listings.json` — now imported via `lib/listings/data.ts` with numeric normalization
+- [done] Wire Google Maps → Mapbox — Mapbox GL in place on `/properties`; `NEXT_PUBLIC_MAPBOX_TOKEN` still TBD (fallback UI renders without it)
+- Add a "Verified" badge component + render it on `SearchCard` / `MapPopCard` / `DetailModal` when `badge === 'verified'` (component exists already, just needs the badge prop)
+- Add ARMLS / Fair Housing / broker-attribution / data-timestamp compliance to footer (see "Compliance" section) before launch
 - Wire lead captures (`assumableLeads` in localStorage) to a CRM webhook
 - Wire `submitOffMarket()` calls (hero + funnel step 6 + investor section) to a real backend
 - SEO: structured data (schema.org/RealEstateListing), meta tags, analytics
+- Push `next-rebuild` to remote + flip Vercel production from old static site to Next.js once content/compliance are ready
+- Confirm Jeff's email in footer — currently `jeff@assumablehomesaz.com` (from old `index.html`); CLAUDE.md says `jeff@stewardhomes.com` (Steward Homes is his brokerage). User to clarify which is canonical for the marketing site
+- Decide whether to expand FAQ from 4 → 6 items (current FAQ ports the 4 from `index.html` source)
 
-**Backend rebuild (gated on Cotality validation):**
-- Stand up Supabase, write migration for `listings` / `assumable_flags` / `verifications` (ask user before committing — schema not final)
+**Backend buildout (now unblocked):**
+- Stand up Supabase, write migration for `listings` / `assumable_flags` / `verifications` (ask user before committing — schema not final, see updates below)
 - ARMLS Spark API access via Jeff Salazar (sponsoring broker); build hourly sync worker
-- Cotality pipeline: property search → mortgage/current → (OCR fallback) → write `assumable_flags`
-- Freddie Mac PMMS weekly fetch + rate-estimate fallback
-- Migrate frontend to Next.js 15 + Tailwind + Mapbox, replace `listings.json` with Supabase queries
-- Add real user auth (replace dormant hardcoded credentials) — if and when we actually need an account tier (the public IDX surface should remain login-free)
+- Cotality pipeline: search → enriched liens → write `assumable_flags` with confidence ranks preserved per field
+- (Optional) Freddie Mac PMMS weekly fetch — needed for "market rate" comparator, not for rate display (enriched gives us actual)
+- Add real user auth (replace dormant hardcoded credentials) — only if we want an account tier; public IDX surface remains login-free
+- Negotiate paid Cotality tier with Gene Rinas before production launch (~27K listings means ~54K calls/day, well beyond 100/day trial)
 - Multilingual support: add `lang` param to Claude prompts when needed
 
 ---
