@@ -23,16 +23,34 @@ async function runProbe(addresses: ProbeAddress[]) {
   for (const addr of addresses) {
     results.push(await probeAddress(addr));
   }
+
+  const withRate = results.filter((r) => r.interestRate != null);
+  const withLoanType = results.filter((r) => r.loanType != null);
+  const avg = (xs: number[]) =>
+    xs.length === 0 ? null : Number((xs.reduce((a, b) => a + b, 0) / xs.length).toFixed(2));
+
   const summary = {
     total: results.length,
-    withClip: results.filter(r => r.clip).length,
-    withMortgage: results.filter(r => r.primary).length,
-    withRate: results.filter(r => typeof r.primary?.interestRate === 'number' && r.primary.interestRate > 0).length,
+    withClip: results.filter((r) => r.clip).length,
+    withRate: withRate.length,
+    verifiable: results.filter((r) => r.badge === 'verified').length,
     byLoanType: results.reduce<Record<string, number>>((acc, r) => {
-      const code = r.primary?.loanTypeCode ?? 'unknown';
+      const code = r.loanType ?? 'unknown';
       acc[code] = (acc[code] ?? 0) + 1;
       return acc;
-    }, {})
+    }, {}),
+    avgConfidence: {
+      rate: avg(
+        withRate
+          .map((r) => r.interestRateConfidence)
+          .filter((v): v is number => v != null)
+      ),
+      loanType: avg(
+        withLoanType
+          .map((r) => r.loanTypeConfidence)
+          .filter((v): v is number => v != null)
+      )
+    }
   };
   return { summary, results };
 }

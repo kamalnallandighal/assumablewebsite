@@ -1,5 +1,9 @@
 import { getCotalityToken } from './auth';
-import type { MortgageTransactionProduct, PropertySearchHit } from './types';
+import type {
+  EnrichedLienResponse,
+  MortgageTransactionProduct,
+  PropertySearchHit
+} from './types';
 
 const BASE = 'https://api1.cotality.com';
 
@@ -45,6 +49,14 @@ export async function searchProperty(p: PropertySearchParams): Promise<PropertyS
 
 export function getCurrentMortgage(clip: string): Promise<MortgageTransactionProduct> {
   return authedGet<MortgageTransactionProduct>(`/v2/properties/${clip}/mortgage/current`);
+}
+
+// Enriched open-voluntary-liens — the endpoint that returns ML-enriched rate +
+// loan type + UPB with confidence ranks. Validated 2026-05-29 against
+// 2208 N 78th Gln (returned 2.8% VA, rank 5). See CLAUDE.md for the full
+// field reference.
+export function getEnrichedLiens(clip: string): Promise<EnrichedLienResponse> {
+  return authedGet<EnrichedLienResponse>(`/v2/properties/liens/enriched/${clip}`);
 }
 
 export interface DocImageParams {
