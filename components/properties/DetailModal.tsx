@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
 import type { Listing } from '../../lib/listings/types';
 import { formatMoney, formatRate } from '../../lib/format';
 import {
@@ -13,68 +14,86 @@ interface Props {
   listing: Listing | null;
   onClose: () => void;
   onContactAgent: (listingId: string) => void;
+  // Optional pagination through the visible list (powers "2 of 8" + arrows).
+  index?: number;
+  total?: number;
+  onPrev?: () => void;
+  onNext?: () => void;
 }
 
-const loanBadgeClass: Record<string, string> = {
-  VA: 'bg-navy text-white',
-  FHA: 'bg-terra text-white',
-  Conventional: 'bg-ink text-white'
-};
+function loanTagClass(t: Listing['loanType']): string {
+  if (t === 'VA') return 'tag tag-va';
+  if (t === 'FHA') return 'tag tag-fha';
+  return 'tag tag-dim';
+}
 
-// Payment calc note: we use the canonical listing.assumedMonthly (assumes 10% down)
-// and linearly scale by downPercent/10, matching the original static-site UX.
+function splitAddress(full: string): { street: string; cityRegion: string } {
+  const idx = full.indexOf(',');
+  if (idx === -1) return { street: full, cityRegion: '' };
+  return {
+    street: full.slice(0, idx).trim(),
+    cityRegion: full.slice(idx + 1).trim()
+  };
+}
+
+// Linear scale of the canonical 10%-down monthly figure. Matches prior calc.
 function scaledMonthly(canonical: number, downPercent: number): number {
   return Math.round(canonical * (downPercent / 10));
 }
 
-function formatDateLabel(d: Date): string {
+function formatDayLabel(d: Date): { day: string; numeral: string } {
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return `${days[d.getDay()]} · ${months[d.getMonth()]} ${d.getDate()}`;
+  return { day: days[d.getDay()], numeral: String(d.getDate()) };
 }
 
 function formatTimeLabel(slot: number): string {
-  // slot is half-hour index from 9:00 (slot 0) through 18:00 (slot 18)
+  // slot is half-hour index from 9:00 (slot 0) through 18:00.
   const totalMinutes = 9 * 60 + slot * 30;
   const hour24 = Math.floor(totalMinutes / 60);
   const minute = totalMinutes % 60;
   const period = hour24 >= 12 ? 'pm' : 'am';
   const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
-  return `${hour12}:${minute.toString().padStart(2, '0')}${period}`;
+  return minute === 0 ? `${hour12}${period}` : `${hour12}:${minute.toString().padStart(2, '0')}${period}`;
 }
 
-export function DetailModal({ listing, onClose, onContactAgent }: Props) {
+const TIME_SLOT_INDICES = [2, 5, 8, 11, 14, 17]; // 10am, 11:30, 1pm, 2:30, 4pm, 5:30
+
+export function DetailModal({
+  listing,
+  onClose,
+  onContactAgent,
+  index,
+  total,
+  onPrev,
+  onNext
+}: Props) {
   const [photoIdx, setPhotoIdx] = useState(0);
-  const [downPercent, setDownPercent] = useState(10);
-  const [tourDate, setTourDate] = useState<string | null>(null);
-  const [tourTime, setTourTime] = useState<string | null>(null);
+  const [downPercent, setDownPercent] = useState(11);
+  const [tourDayIdx, setTourDayIdx] = useState<number | null>(1); // Default Sat selected per design
+  const [tourSlot, setTourSlot] = useState<number | null>(8); // Default 1pm
   const [tourConfirmed, setTourConfirmed] = useState(false);
-  const [openSections, setOpenSections] = useState<Set<string>>(
-    new Set(['Interior'])
-  );
 
   useEffect(() => {
     if (listing) {
       setPhotoIdx(0);
-      setDownPercent(10);
-      setTourDate(null);
-      setTourTime(null);
+      setDownPercent(11);
+      setTourDayIdx(1);
+      setTourSlot(8);
       setTourConfirmed(false);
-      setOpenSections(new Set(['Interior']));
     }
   }, [listing?.id]);
 
-  // Escape key closes
   useEffect(() => {
     if (!listing) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowLeft' && onPrev) onPrev();
+      if (e.key === 'ArrowRight' && onNext) onNext();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [listing, onClose]);
+  }, [listing, onClose, onPrev, onNext]);
 
-  // Lock body scroll while open
   useEffect(() => {
     if (!listing) return;
     const prev = document.body.style.overflow;
@@ -84,19 +103,14 @@ export function DetailModal({ listing, onClose, onContactAgent }: Props) {
     };
   }, [listing]);
 
-  const tourDates = useMemo(() => {
+  const tourDays = useMemo(() => {
     const today = new Date();
-    return Array.from({ length: 7 }, (_, i) => {
+    return Array.from({ length: 5 }, (_, i) => {
       const d = new Date(today);
       d.setDate(today.getDate() + i);
-      return { iso: d.toISOString().slice(0, 10), label: formatDateLabel(d) };
+      return formatDayLabel(d);
     });
-  }, []);
-
-  const timeSlots = useMemo(
-    () => Array.from({ length: 19 }, (_, i) => formatTimeLabel(i)),
-    []
-  );
+  }, [listing?.id]);
 
   if (!listing) return null;
 
@@ -104,316 +118,504 @@ export function DetailModal({ listing, onClose, onContactAgent }: Props) {
   const description = descriptionFor(listing);
   const features = featuresFor(listing);
   const sections = propertyDetailsFor(listing);
+  const factRows = sections.flatMap((s) => s.rows).slice(0, 8);
 
-  const assumedM = scaledMonthly(listing.assumedMonthly, downPercent);
-  const marketM = scaledMonthly(listing.marketMonthly, downPercent);
+  const { street, cityRegion } = splitAddress(listing.address);
+  const monthlySavings = Math.max(0, listing.marketMonthly - listing.assumedMonthly);
   const downAmount = Math.round((listing.price * downPercent) / 100);
-  const totalSavings = Math.max(0, (marketM - assumedM) * 360);
+  const scaledM = scaledMonthly(listing.assumedMonthly, downPercent);
+  const cashToClose = downAmount + 3200;
 
-  const toggleSection = (title: string) => {
-    setOpenSections((prev) => {
-      const next = new Set(prev);
-      if (next.has(title)) next.delete(title);
-      else next.add(title);
-      return next;
-    });
-  };
+  const selectedTime = tourSlot !== null ? formatTimeLabel(tourSlot) : null;
+  const selectedDay = tourDayIdx !== null ? tourDays[tourDayIdx] : null;
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-ink/60 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/55 backdrop-blur-[2px] pt-[60px] pb-10 px-4"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className="bg-paper w-full inset-0 fixed rounded-none max-h-screen overflow-y-auto md:static md:rounded-card md:my-8 md:mx-auto md:max-w-3xl md:max-h-[calc(100vh-4rem)] md:shadow-lg"
         role="dialog"
         aria-modal="true"
+        className="relative w-full md:w-[min(1120px,calc(100%-80px))] bg-paper rounded-xl shadow-modal overflow-hidden flex flex-col"
+        style={{ maxHeight: 'calc(100vh - 120px)' }}
       >
-        {/* Topbar */}
-        <div className="sticky top-0 z-10 flex items-center justify-between bg-paper border-b border-line px-4 py-3">
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="text-ink text-2xl leading-none w-9 h-9 flex items-center justify-center hover:bg-cream rounded-full"
-          >
-            ×
-          </button>
-          <div className="hidden md:flex items-center gap-2">
+        {/* Top bar */}
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-line bg-paper shrink-0">
+          <div className="flex items-center gap-2.5">
             <button
-              type="button"
-              aria-label="Share"
-              className="text-sm text-ink border border-line rounded-pill px-3 py-1.5 hover:bg-cream"
+              onClick={onClose}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-medium text-ink border border-line-2 rounded-pill hover:border-ink"
             >
-              Share
+              ← Back to map
             </button>
-            <button
-              type="button"
-              aria-label="Save"
-              className="text-sm text-ink border border-line rounded-pill px-3 py-1.5 hover:bg-cream"
-            >
-              Save
-            </button>
-          </div>
-        </div>
-
-        {/* Gallery */}
-        <div className="relative aspect-video bg-line">
-          {photos.map((src, i) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={src}
-              src={src}
-              alt={`${listing.address} photo ${i + 1}`}
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
-                i === photoIdx ? 'opacity-100' : 'opacity-0'
-              }`}
-            />
-          ))}
-          <button
-            type="button"
-            aria-label="Previous photo"
-            onClick={() => setPhotoIdx((i) => (i - 1 + photos.length) % photos.length)}
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-paper/90 text-ink flex items-center justify-center hover:bg-paper"
-          >
-            ‹
-          </button>
-          <button
-            type="button"
-            aria-label="Next photo"
-            onClick={() => setPhotoIdx((i) => (i + 1) % photos.length)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-paper/90 text-ink flex items-center justify-center hover:bg-paper"
-          >
-            ›
-          </button>
-          <div className="absolute top-3 right-3 bg-ink/70 text-white text-xs px-2 py-1 rounded-pill">
-            {photoIdx + 1} / {photos.length}
-          </div>
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-            {photos.map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                aria-label={`Photo ${i + 1}`}
-                onClick={() => setPhotoIdx(i)}
-                className={`w-2 h-2 rounded-full ${
-                  i === photoIdx ? 'bg-paper' : 'bg-paper/50'
-                }`}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Header */}
-        <div className="px-5 py-5 border-b border-line">
-          <div className="font-serif text-3xl text-ink">{formatMoney(listing.price)}</div>
-          <div className="text-sm text-ink mt-1">{listing.address}</div>
-          <div className="flex flex-wrap gap-2 mt-3">
-            <span className="text-xs text-ink border border-line rounded-pill px-2.5 py-1">
-              {listing.beds} bd
-            </span>
-            <span className="text-xs text-ink border border-line rounded-pill px-2.5 py-1">
-              {listing.baths} ba
-            </span>
-            <span className="text-xs text-ink border border-line rounded-pill px-2.5 py-1">
-              {listing.sqft.toLocaleString()} sqft
-            </span>
-            {listing.isAssumable && (
-              <span className="text-xs bg-ok text-white rounded-pill px-2.5 py-1">
-                Assumable {formatRate(listing.rate)}
-              </span>
-            )}
-            {listing.loanType && (
-              <span
-                className={`text-xs rounded-pill px-2.5 py-1 ${
-                  loanBadgeClass[listing.loanType] ?? 'bg-ink text-white'
-                }`}
-              >
-                {listing.loanType}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* About */}
-        <section className="px-5 py-5 border-b border-line">
-          <h3 className="font-serif text-xl text-ink mb-2">About this home</h3>
-          <p className="text-sm text-ink/80 leading-relaxed">{description}</p>
-        </section>
-
-        {/* Features */}
-        <section className="px-5 py-5 border-b border-line">
-          <h3 className="font-serif text-xl text-ink mb-3">Features</h3>
-          <ul className="grid grid-cols-2 md:grid-cols-4 gap-y-2 gap-x-3">
-            {features.map((f) => (
-              <li key={f} className="flex items-center gap-2 text-sm text-ink/80">
-                <span className="w-1.5 h-1.5 rounded-full bg-terra" />
-                {f}
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        {/* Payment Calculator */}
-        <section className="px-5 py-5 border-b border-line">
-          <h3 className="font-serif text-xl text-ink mb-3">Payment calculator</h3>
-          <div className="flex items-baseline justify-between mb-2">
-            <label htmlFor="down-slider" className="text-sm text-ink">
-              Down payment
-            </label>
-            <div className="text-sm text-ink">
-              <span className="font-serif text-base">{downPercent}%</span>{' '}
-              <span className="text-muted">· {formatMoney(downAmount)}</span>
-            </div>
-          </div>
-          <input
-            id="down-slider"
-            type="range"
-            min={5}
-            max={20}
-            step={1}
-            value={downPercent}
-            onChange={(e) => setDownPercent(parseInt(e.target.value, 10))}
-            className="w-full accent-terra"
-          />
-          <div className="grid grid-cols-2 gap-3 mt-4">
-            <div className="bg-cream rounded-card p-3">
-              <div className="text-xs text-muted">Assumed ({formatRate(listing.rate)})</div>
-              <div className="font-serif text-2xl text-ink">
-                {formatMoney(assumedM)}
-                <span className="text-sm text-muted font-sans">/mo</span>
-              </div>
-            </div>
-            <div className="bg-cream rounded-card p-3">
-              <div className="text-xs text-muted">Market ({formatRate(listing.marketRate)})</div>
-              <div className="font-serif text-2xl text-ink">
-                {formatMoney(marketM)}
-                <span className="text-sm text-muted font-sans">/mo</span>
-              </div>
-            </div>
-          </div>
-          {totalSavings > 0 && (
-            <div className="mt-3 bg-terra-soft text-terra-ink rounded-card px-3 py-2.5 text-sm">
-              Save <strong>{formatMoney(totalSavings)}</strong> over the life of the loan
-            </div>
-          )}
-        </section>
-
-        {/* Tour Scheduler */}
-        <section className="px-5 py-5 border-b border-line">
-          <h3 className="font-serif text-xl text-ink mb-3">Schedule a tour</h3>
-          {tourConfirmed ? (
-            <div className="bg-cream rounded-card p-4 text-sm text-ink">
-              Tour requested for{' '}
-              <strong>
-                {tourDates.find((d) => d.iso === tourDate)?.label ?? tourDate}
-              </strong>{' '}
-              at <strong>{tourTime}</strong>. Jeff will confirm shortly.
-            </div>
-          ) : (
-            <>
-              <div className="text-xs text-muted mb-2">Pick a day</div>
-              <div className="flex flex-wrap gap-2 mb-4">
-                {tourDates.map((d) => (
+            {typeof index === 'number' && typeof total === 'number' && total > 0 && (
+              <>
+                <span className="text-xs text-muted-2">
+                  {index + 1} of {total}
+                </span>
+                <div className="flex gap-1">
                   <button
-                    key={d.iso}
-                    type="button"
-                    onClick={() => {
-                      setTourDate(d.iso);
-                      setTourTime(null);
-                    }}
-                    className={`text-xs rounded-pill px-3 py-1.5 border transition-colors ${
-                      tourDate === d.iso
-                        ? 'bg-ink text-white border-ink'
-                        : 'bg-paper text-ink border-line hover:border-ink'
-                    }`}
+                    onClick={onPrev}
+                    disabled={!onPrev}
+                    aria-label="Previous listing"
+                    className="w-[26px] h-[26px] border border-line-2 bg-paper rounded-md text-xs leading-none disabled:opacity-40 hover:border-ink"
                   >
-                    {d.label}
+                    ‹
                   </button>
-                ))}
+                  <button
+                    onClick={onNext}
+                    disabled={!onNext}
+                    aria-label="Next listing"
+                    className="w-[26px] h-[26px] border border-line-2 bg-paper rounded-md text-xs leading-none disabled:opacity-40 hover:border-ink"
+                  >
+                    ›
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                const url = `${window.location.origin}/properties/${listing.id}`;
+                if (navigator.share) {
+                  navigator.share({ title: listing.address, url }).catch(() => {});
+                } else {
+                  navigator.clipboard?.writeText(url);
+                }
+              }}
+              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-medium text-ink border border-line-2 rounded-pill hover:border-ink"
+            >
+              <ShareIcon /> Share
+            </button>
+            <button
+              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 text-[13px] font-medium text-ink border border-line-2 rounded-pill hover:border-ink"
+              aria-label="Save listing"
+            >
+              <HeartIcon /> Save
+            </button>
+            <button
+              onClick={onClose}
+              aria-label="Close"
+              className="w-8 h-8 border border-line-2 bg-paper rounded-md text-lg leading-none hover:border-ink"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        {/* Body — scroll */}
+        <div className="overflow-y-auto flex-1">
+          <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr]">
+            {/* LEFT — gallery + content */}
+            <div className="p-7">
+              {/* Gallery 2fr/1fr */}
+              <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-1.5 rounded-[14px] overflow-hidden">
+                <GalleryTile src={photos[photoIdx % photos.length]} label="front" height={320} />
+                <div className="grid gap-1.5">
+                  <GalleryTile src={photos[1 % photos.length]} label="kitchen" height={157} />
+                  <GalleryTile src={photos[2 % photos.length]} label="backyard" height={157} />
+                </div>
               </div>
-              {tourDate && (
-                <>
-                  <div className="text-xs text-muted mb-2">Pick a time</div>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {timeSlots.map((t) => (
-                      <button
-                        key={t}
-                        type="button"
-                        onClick={() => setTourTime(t)}
-                        className={`text-xs rounded-pill px-3 py-1.5 border transition-colors ${
-                          tourTime === t
-                            ? 'bg-ink text-white border-ink'
-                            : 'bg-paper text-ink border-line hover:border-ink'
-                        }`}
-                      >
-                        {t}
-                      </button>
-                    ))}
+              {photos.length > 1 && (
+                <div className="mt-3 flex items-center gap-2">
+                  <button
+                    onClick={() => setPhotoIdx((i) => (i - 1 + photos.length) % photos.length)}
+                    className="px-2 py-1 text-xs rounded-pill border border-line-2 hover:border-ink"
+                  >
+                    ‹
+                  </button>
+                  <span className="text-xs text-muted">
+                    {(photoIdx % photos.length) + 1} / {photos.length}
+                  </span>
+                  <button
+                    onClick={() => setPhotoIdx((i) => (i + 1) % photos.length)}
+                    className="px-2 py-1 text-xs rounded-pill border border-line-2 hover:border-ink"
+                  >
+                    ›
+                  </button>
+                </div>
+              )}
+
+              {/* Tags */}
+              <div className="flex gap-2 mt-5">
+                {listing.loanType && (
+                  <span className={loanTagClass(listing.loanType)}>
+                    {listing.loanType} · {formatRate(listing.rate)}
+                  </span>
+                )}
+                <span className="tag tag-ok">Assumable</span>
+              </div>
+
+              {/* Address */}
+              <h2 className="font-serif font-normal mt-2.5 mb-1.5 leading-[1.05] tracking-[-.02em] text-[38px] text-ink">
+                {street}
+              </h2>
+              <div className="text-sm text-muted-2">{cityRegion}</div>
+              <div className="flex gap-5 mt-3.5 text-[13px]">
+                <span>
+                  <strong>{listing.beds}</strong> bd
+                </span>
+                <span>
+                  <strong>{listing.baths}</strong> ba
+                </span>
+                <span>
+                  <strong>{listing.sqft.toLocaleString()}</strong> sqft
+                </span>
+              </div>
+
+              {/* Assumable advantage block */}
+              <div className="mt-6 p-5 bg-cream rounded-lg">
+                <div className="eyebrow mb-3" style={{ fontSize: 10 }}>
+                  Assumable advantage
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <div className="text-[11px] text-muted-2">Monthly</div>
+                    <div className="font-serif font-normal text-[28px] tracking-[-.02em] mt-1 text-navy">
+                      {formatMoney(listing.assumedMonthly)}
+                    </div>
+                    {monthlySavings > 0 && (
+                      <div className="text-[11px] text-ok font-medium mt-0.5">
+                        +{formatMoney(monthlySavings)}/mo saved
+                      </div>
+                    )}
                   </div>
+                  <div>
+                    <div className="text-[11px] text-muted-2">Rate</div>
+                    <div className="font-serif font-normal text-[28px] tracking-[-.02em] mt-1">
+                      {formatRate(listing.rate)}
+                    </div>
+                    <div className="text-[11px] text-muted-2 mt-0.5">
+                      vs {formatRate(listing.marketRate)} today
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[11px] text-muted-2">Equity needed</div>
+                    <div className="font-serif font-normal text-[28px] tracking-[-.02em] mt-1">
+                      {formatMoney(listing.downPayment)}
+                    </div>
+                    <div className="text-[11px] text-muted-2 mt-0.5">Down payment</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Description */}
+              <p className="text-sm text-ink leading-[1.7] mt-6 max-w-[560px]">{description}</p>
+
+              {/* Facts & features */}
+              <div className="mt-6">
+                <div className="eyebrow mb-3" style={{ fontSize: 10 }}>
+                  Facts &amp; features
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+                  {factRows.map(([k, v]) => (
+                    <div
+                      key={k}
+                      className="flex justify-between py-2.5 border-b border-line text-xs"
+                    >
+                      <span className="text-muted-2">{k}</span>
+                      <span className="text-ink font-medium text-right">{v}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3.5 grid grid-cols-2 md:grid-cols-4 gap-1.5">
+                  {features.map((f) => (
+                    <div
+                      key={f}
+                      className="px-2.5 py-2.5 bg-paper border border-line rounded-md text-[11px] text-ink flex items-center gap-1.5"
+                    >
+                      <CheckIcon /> <span className="truncate">{f}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <Link
+                href={`/properties/${listing.id}`}
+                className="inline-block mt-4 text-[13px] text-ink underline underline-offset-2"
+              >
+                View full property page →
+              </Link>
+            </div>
+
+            {/* RIGHT — booking rail */}
+            <div className="bg-cream p-7 border-t md:border-t-0 md:border-l border-line">
+              {!tourConfirmed ? (
+                <>
+                  <div className="font-serif font-normal text-[22px] tracking-[-.02em]">
+                    Tour this home
+                  </div>
+                  <div className="text-xs text-muted-2 mt-1">
+                    In person or virtual · No signup needed
+                  </div>
+
+                  {/* Day picker */}
+                  <div className="grid grid-cols-5 gap-1.5 mt-4">
+                    {tourDays.map((d, i) => {
+                      const active = tourDayIdx === i;
+                      return (
+                        <button
+                          key={i}
+                          onClick={() => setTourDayIdx(i)}
+                          className={`py-2.5 rounded-[9px] flex flex-col items-center font-medium border ${
+                            active
+                              ? 'bg-ink text-paper border-ink'
+                              : 'bg-paper text-ink border-line-2 hover:border-ink'
+                          }`}
+                        >
+                          <span className="text-[9px] opacity-70">{d.day}</span>
+                          <span className="text-sm">{d.numeral}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Time picker */}
+                  <div className="grid grid-cols-3 gap-1.5 mt-2.5">
+                    {TIME_SLOT_INDICES.map((slot) => {
+                      const active = tourSlot === slot;
+                      return (
+                        <button
+                          key={slot}
+                          onClick={() => setTourSlot(slot)}
+                          className={`py-2 rounded-[9px] text-xs font-medium border ${
+                            active
+                              ? 'bg-ink text-paper border-ink'
+                              : 'bg-paper text-ink border-line-2 hover:border-ink'
+                          }`}
+                        >
+                          {formatTimeLabel(slot)}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    onClick={() => setTourConfirmed(true)}
+                    disabled={tourDayIdx === null || tourSlot === null}
+                    className="w-full mt-4 py-3.5 px-6 rounded-pill bg-ink text-paper text-[15px] font-semibold disabled:opacity-50 hover:bg-ink-2"
+                  >
+                    Book {selectedDay?.day} {selectedDay?.numeral}{' '}
+                    {selectedTime ? `@ ${selectedTime}` : ''}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-full bg-ok text-paper grid place-items-center">
+                      <CheckIcon />
+                    </div>
+                    <div className="font-serif text-[22px] tracking-[-.02em]">Tour requested</div>
+                  </div>
+                  <div className="text-[13px] text-muted-2 mt-2.5">
+                    <strong className="text-ink">
+                      {selectedDay?.day} {selectedDay?.numeral}
+                      {selectedTime ? ` at ${selectedTime}` : ''}
+                    </strong>
+                    <br />
+                    In-person at {street}
+                  </div>
+                  <div className="mt-5 p-4 bg-paper rounded-[14px]">
+                    <div className="text-[13px] font-semibold mb-2.5">
+                      Where should we send confirmation?
+                    </div>
+                    <input
+                      type="email"
+                      placeholder="Email"
+                      className="w-full border border-line-2 rounded-pill px-5 py-3.5 text-sm focus:outline-none focus:border-ink mb-2"
+                    />
+                    <input
+                      type="tel"
+                      placeholder="Phone (for tour-day texts)"
+                      className="w-full border border-line-2 rounded-pill px-5 py-3.5 text-sm focus:outline-none focus:border-ink"
+                    />
+                    <button
+                      onClick={() => onContactAgent(listing.id)}
+                      className="w-full mt-2.5 py-3.5 px-6 rounded-pill bg-ink text-paper text-[15px] font-semibold hover:bg-ink-2"
+                    >
+                      Confirm tour
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => setTourConfirmed(false)}
+                    className="mt-3 text-xs text-muted-2 underline underline-offset-2"
+                  >
+                    Pick a different time
+                  </button>
                 </>
               )}
-              <button
-                type="button"
-                disabled={!tourDate || !tourTime}
-                onClick={() => setTourConfirmed(true)}
-                className="w-full bg-ink text-white text-sm py-2.5 rounded-pill disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Confirm tour
-              </button>
-            </>
-          )}
-        </section>
 
-        {/* Property Details accordion */}
-        <section className="px-5 py-5 border-b border-line">
-          <h3 className="font-serif text-xl text-ink mb-3">Property details</h3>
-          <div className="space-y-2">
-            {sections.map((section) => {
-              const isOpen = openSections.has(section.title);
-              return (
-                <div key={section.title} className="border border-line rounded-card">
-                  <button
-                    type="button"
-                    onClick={() => toggleSection(section.title)}
-                    aria-expanded={isOpen}
-                    className="w-full flex items-center justify-between px-3 py-2.5 text-left text-sm text-ink"
-                  >
-                    <span className="font-medium">{section.title}</span>
-                    <span className="text-muted">{isOpen ? '−' : '+'}</span>
-                  </button>
-                  {isOpen && (
-                    <div className="px-3 pb-3 space-y-1.5">
-                      {section.rows.map(([label, value]) => (
-                        <div
-                          key={label}
-                          className="flex justify-between text-sm border-b border-line/60 last:border-0 py-1"
-                        >
-                          <span className="text-muted">{label}</span>
-                          <span className="text-ink">{value}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+              {/* Investor callout */}
+              <div className="mt-4 p-3.5 bg-terra-soft rounded-[10px] border border-terra">
+                <div className="text-xs font-semibold text-terra-ink">Investor?</div>
+                <div className="text-[11px] text-terra-ink/80 mt-1 leading-[1.5]">
+                  {listing.loanType === 'VA'
+                    ? 'VA loan — rentable. Get ROI breakdown.'
+                    : 'FHA is primary-residence only. Ask about VA in this area.'}
                 </div>
-              );
-            })}
-          </div>
-        </section>
+                <button className="w-full mt-2.5 py-2 px-3.5 rounded-pill bg-terra text-paper text-[13px] font-medium hover:bg-[#B9472A]">
+                  Discuss ROI
+                </button>
+              </div>
 
-        {/* Contact agent */}
-        <section className="px-5 py-5">
-          <button
-            type="button"
-            onClick={() => onContactAgent(listing.id)}
-            className="w-full bg-terra text-white text-sm py-3 rounded-pill hover:bg-terra/90"
-          >
-            Contact agent
-          </button>
-        </section>
+              {/* Agent strip */}
+              <div className="mt-3.5 p-3 bg-paper rounded-[10px] flex gap-2.5 items-center">
+                <div
+                  className="w-8 h-8 rounded-full shrink-0"
+                  style={{
+                    backgroundImage:
+                      'repeating-linear-gradient(45deg, #b8aca3 0 2px, #c9bfb7 2px 4px)'
+                  }}
+                />
+                <div className="flex-1 text-[11px] min-w-0">
+                  <div className="font-semibold">Jeff Salazar</div>
+                  <div className="text-muted-2">(602) 332-3860</div>
+                </div>
+                <button
+                  onClick={() => onContactAgent(listing.id)}
+                  className="px-3.5 py-2 rounded-pill border border-line-2 text-[11px] font-medium hover:border-ink"
+                >
+                  Chat
+                </button>
+              </div>
+
+              {/* Estimate your payment */}
+              <div className="mt-5 bg-paper rounded-md p-4 border border-line">
+                <div className="font-serif font-normal text-[18px] tracking-[-.02em]">
+                  Estimate your payment
+                </div>
+                <div className="text-[11px] text-muted-2 mt-1">
+                  Adjust your down payment to see monthly
+                </div>
+                <div className="mt-4">
+                  <div className="flex justify-between items-baseline text-[11px]">
+                    <span className="text-muted-2">Down payment</span>
+                    <span className="text-ink font-semibold">
+                      {downPercent}% · {formatMoney(downAmount)}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={5}
+                    max={35}
+                    step={1}
+                    value={downPercent}
+                    onChange={(e) => setDownPercent(Number(e.target.value))}
+                    className="w-full mt-2 accent-ink"
+                  />
+                  <div className="flex justify-between mt-1.5 text-[10px] text-muted">
+                    <span>5%</span>
+                    <span>20%</span>
+                    <span>35%</span>
+                  </div>
+                </div>
+                <div className="mt-4 pt-4 border-t border-dashed border-line-2 grid grid-cols-2 gap-2.5">
+                  <div>
+                    <div className="text-[10px] text-muted-2 uppercase tracking-[.08em]">
+                      Monthly P&amp;I
+                    </div>
+                    <div className="font-serif font-normal text-[26px] tracking-[-.02em] text-navy mt-1">
+                      {formatMoney(scaledM)}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-muted-2 uppercase tracking-[.08em]">
+                      Cash to close
+                    </div>
+                    <div className="font-serif font-normal text-[26px] tracking-[-.02em] mt-1">
+                      {formatMoney(cashToClose)}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-[10px] text-muted mt-2.5 leading-[1.5]">
+                  Includes est. $3,200 closing. Taxes + insurance not included.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+  );
+}
+
+function GalleryTile({
+  src,
+  label,
+  height
+}: {
+  src: string | undefined;
+  label: string;
+  height: number;
+}) {
+  if (!src) {
+    return (
+      <div className="skeleton-img" style={{ height }}>
+        {label}
+      </div>
+    );
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} alt={label} className="w-full object-cover" style={{ height }} />
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      width={11}
+      height={11}
+      className="text-ok shrink-0"
+    >
+      <path d="m5 13 4 4L19 7" />
+    </svg>
+  );
+}
+
+function ShareIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      width={13}
+      height={13}
+    >
+      <circle cx={18} cy={5} r={3} />
+      <circle cx={6} cy={12} r={3} />
+      <circle cx={18} cy={19} r={3} />
+      <path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4" />
+    </svg>
+  );
+}
+
+function HeartIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      width={13}
+      height={13}
+    >
+      <path d="M20.8 5.6a5.5 5.5 0 00-7.8 0L12 6.6l-1-1a5.5 5.5 0 00-7.8 7.8L12 22l8.8-8.6a5.5 5.5 0 000-7.8z" />
+    </svg>
   );
 }

@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 @layer components {
+  /* ---------- Map markers (existing) ---------- */
   .price-pill {
     display: inline-flex;
     align-items: center;
@@ -41,8 +42,60 @@
     border-color: #0F1623;
     box-shadow: 0 4px 12px rgba(15, 22, 35, 0.20);
   }
+  .price-pill.hovered:not(.selected) {
+    background: #FFFFFF;
+    color: #0F1623;
+    border-color: #0F1623;
+    box-shadow: 0 4px 12px rgba(15, 22, 35, 0.15);
+    transform: scale(1.06);
+    z-index: 2;
+  }
   .price-pill.selected .price-pill-dot-va,
   .price-pill.selected .price-pill-dot-fha {
     background: rgba(255, 255, 255, 0.7);
+  }
+
+  /* ---------- Design system primitives (from tokens.css) ---------- */
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #5E5E5E;
+  }
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    padding: 5px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .tag-va       { background: #E8EDF7; color: #1A2855; }
+  .tag-fha      { background: #FDE9D4; color: #631800; }
+  .tag-ok       { background: #E1F0EA; color: #1E6F5C; }
+  .tag-dim      { background: #F4F3F2; color: #5E5E5E; }
+  .tag-investor { background: #FDD8CC; color: #631800; }
+
+  /* Skeleton-image placeholder used when a listing has no photo */
+  .skeleton-img {
+    background: #F4F3F2;
+    background-image: repeating-linear-gradient(
+      135deg,
+      rgba(15, 22, 35, .045) 0 1px,
+      transparent 1px 16px
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #868686;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-weight: 500;
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
   }
 }

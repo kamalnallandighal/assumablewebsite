@@ -5,10 +5,11 @@ import { formatMoney } from '../../lib/format';
 interface Props {
   listing: Listing;
   selected: boolean;
-  onSelect: (id: string) => void;
+  hovered?: boolean;
+  onOpen: (id: string) => void;
+  onHover?: (id: string | null) => void;
   onFavorite?: (id: string) => void;
   favorited?: boolean;
-  onOpenDetail?: (id: string) => void;
 }
 
 const loanBadgeClass: Record<string, string> = {
@@ -17,13 +18,19 @@ const loanBadgeClass: Record<string, string> = {
   Conventional: 'bg-ink text-white'
 };
 
-export function SearchCard({ listing, selected, onSelect, onFavorite, favorited, onOpenDetail }: Props) {
+export function SearchCard({ listing, selected, hovered, onOpen, onHover, onFavorite, favorited }: Props) {
   return (
     <button
       type="button"
-      onClick={() => onSelect(listing.id)}
+      onClick={() => onOpen(listing.id)}
+      onMouseEnter={() => onHover?.(listing.id)}
+      onMouseLeave={() => onHover?.(null)}
       className={`group text-left bg-paper rounded-card overflow-hidden border transition-shadow ${
-        selected ? 'border-2 border-ink shadow-md' : 'border border-line hover:shadow-sm'
+        selected
+          ? 'border-2 border-ink shadow-md'
+          : hovered
+            ? 'border border-ink shadow-md'
+            : 'border border-line hover:shadow-sm'
       }`}
       data-id={listing.id}
     >
@@ -59,24 +66,6 @@ export function SearchCard({ listing, selected, onSelect, onFavorite, favorited,
         <div className="text-xs text-muted">
           {listing.beds} bd · {listing.baths} ba · {listing.sqft.toLocaleString()} sqft
         </div>
-        {selected && (
-          <div className="flex gap-2 pt-2">
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onOpenDetail?.(listing.id); }}
-              className="flex-1 bg-paper border border-ink text-ink text-sm py-1.5 rounded-pill"
-            >
-              Tour
-            </button>
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onOpenDetail?.(listing.id); }}
-              className="flex-1 bg-ink text-white text-sm py-1.5 rounded-pill"
-            >
-              Details
-            </button>
-          </div>
-        )}
       </div>
     </button>
   );

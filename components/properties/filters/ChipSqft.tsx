@@ -7,31 +7,30 @@ interface Props {
   patch: (p: Partial<FilterState>) => void;
 }
 
-export function ChipPrice({ state, patch }: Props) {
+export function ChipSqft({ state, patch }: Props) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
-    const onDocClick = (e: MouseEvent) => {
+    const onDoc = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
-    document.addEventListener('mousedown', onDocClick);
-    return () => document.removeEventListener('mousedown', onDocClick);
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
   }, [open]);
 
-  const minStr = state.priceMin > 0 ? String(state.priceMin) : '';
-  const maxStr = state.priceMax !== null ? String(state.priceMax) : '';
-
-  const active = state.priceMin > 0 || state.priceMax !== null;
+  const minStr = state.sqftMin > 0 ? String(state.sqftMin) : '';
+  const maxStr = state.sqftMax !== null ? String(state.sqftMax) : '';
+  const active = state.sqftMin > 0 || state.sqftMax !== null;
 
   const setMin = (v: string) => {
     const n = v === '' ? 0 : Number(v);
-    if (!Number.isNaN(n)) patch({ priceMin: n });
+    if (!Number.isNaN(n)) patch({ sqftMin: n });
   };
   const setMax = (v: string) => {
     const n = v === '' ? null : Number(v);
-    if (n === null || !Number.isNaN(n)) patch({ priceMax: n });
+    if (n === null || !Number.isNaN(n)) patch({ sqftMax: n });
   };
 
   return (
@@ -42,7 +41,7 @@ export function ChipPrice({ state, patch }: Props) {
           active ? 'border-ink bg-cream' : 'border-line'
         }`}
       >
-        Price
+        Sqft
       </button>
       {open && (
         <div className="absolute top-full mt-2 left-0 bg-paper rounded-card shadow-md border border-line p-4 w-64 z-40">
@@ -70,7 +69,7 @@ export function ChipPrice({ state, patch }: Props) {
           </div>
           <div className="flex justify-end mt-3">
             <button
-              onClick={() => patch({ priceMin: 0, priceMax: null })}
+              onClick={() => patch({ sqftMin: 0, sqftMax: null })}
               className="text-xs text-muted hover:text-ink"
             >
               Clear
