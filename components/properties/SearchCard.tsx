@@ -20,12 +20,19 @@ const loanBadgeClass: Record<string, string> = {
 
 export function SearchCard({ listing, selected, hovered, onOpen, onHover, onFavorite, favorited }: Props) {
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={() => onOpen(listing.id)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onOpen(listing.id);
+        }
+      }}
       onMouseEnter={() => onHover?.(listing.id)}
       onMouseLeave={() => onHover?.(null)}
-      className={`group text-left bg-paper rounded-card overflow-hidden border transition-shadow ${
+      className={`group text-left bg-paper rounded-card overflow-hidden border transition-shadow cursor-pointer ${
         selected
           ? 'border-2 border-ink shadow-md'
           : hovered
@@ -67,6 +74,6 @@ export function SearchCard({ listing, selected, hovered, onOpen, onHover, onFavo
           {listing.beds} bd · {listing.baths} ba · {listing.sqft.toLocaleString()} sqft
         </div>
       </div>
-    </button>
+    </div>
   );
 }
