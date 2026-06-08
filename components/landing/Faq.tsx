@@ -20,10 +20,10 @@ const FAQS = [
 
 export function Faq() {
   return (
-    <section id="faq" className="px-6 md:px-10 py-16 md:py-24 bg-paper">
-      <div className="max-w-[820px] mx-auto">
-        <div className="text-xs uppercase tracking-widest text-muted">The basics</div>
-        <h2 className="font-serif font-normal text-[30px] md:text-[40px] tracking-tight text-ink mt-2 mb-8">
+    <section id="faq" className="px-6 md:px-14 py-20 bg-cream">
+      <div className="max-w-[1160px] mx-auto">
+        <div className="eyebrow">The basics</div>
+        <h2 className="font-serif font-normal text-[30px] md:text-[40px] tracking-[-.02em] text-ink mt-2.5 mb-8">
           Questions everyone asks
         </h2>
         <div>
@@ -31,9 +31,9 @@ export function Faq() {
             <details
               key={f.q}
               {...(f.open ? { open: true } : {})}
-              className="group border-b border-line py-4"
+              className="group border-t border-line-2 last:border-b py-5"
             >
-              <summary className="cursor-pointer font-medium text-ink flex items-center justify-between gap-4 list-none [&::-webkit-details-marker]:hidden">
+              <summary className="cursor-pointer font-medium text-ink text-[18px] flex items-center justify-between gap-4 list-none [&::-webkit-details-marker]:hidden">
                 <span>{f.q}</span>
                 <svg
                   width="18"
@@ -48,7 +48,7 @@ export function Faq() {
                   <path d="M12 5v14M5 12h14" />
                 </svg>
               </summary>
-              <p className="text-muted mt-2 leading-[1.6]">{f.a}</p>
+              <p className="text-muted-2 mt-3.5 leading-[1.7] max-w-[760px] text-[15px]">{f.a}</p>
             </details>
           ))}
         </div>

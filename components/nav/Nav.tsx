@@ -13,15 +13,12 @@ export function Nav() {
         <Link href="/#off-market">Off-market</Link>
         <Link href="/#agent">Agent</Link>
       </div>
-      <div className="flex items-center gap-3">
-        <button className="hidden md:inline-block text-sm text-ink">Sign in</button>
-        <Link
-          href="/properties"
-          className="bg-terra text-white text-sm px-4 py-2 rounded-pill hover:opacity-90"
-        >
-          Find your home
-        </Link>
-      </div>
+      <Link
+        href="/properties"
+        className="bg-terra text-white text-sm px-4 py-2 rounded-pill hover:opacity-90"
+      >
+        Find your home
+      </Link>
     </nav>
   );
 }

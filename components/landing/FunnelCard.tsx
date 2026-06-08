@@ -13,8 +13,9 @@ export function FunnelCard() {
   const { state, next, back, skip, patch } = useFunnel();
 
   return (
-    <div className="bg-paper rounded-card shadow-md p-6 md:p-8">
-      <div className="inline-block bg-terra text-white text-xs uppercase tracking-wider px-3 py-1 rounded-pill mb-6">
+    <div className="relative bg-paper rounded-[24px] shadow-lg border border-line p-6 md:p-9">
+      {/* Terra "Find your home" badge floats outside top-left of card per design */}
+      <div className="absolute -top-3 left-6 bg-terra text-white text-[11px] font-semibold uppercase tracking-[.06em] px-3.5 py-1.5 rounded-pill">
         Find your home
       </div>
 

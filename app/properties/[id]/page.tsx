@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { findListing } from '../../../lib/listings/data';
+import { findListingById } from '../../../lib/listings/repository';
 import { formatMoney, formatRate } from '../../../lib/format';
 import { Nav } from '../../../components/nav/Nav';
 import {
@@ -18,7 +18,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const l = findListing(id);
+  const l = await findListingById(id);
   if (!l) return { title: 'Property not found · Assumable Homes' };
   const desc = `${formatMoney(l.price)} · ${l.beds} bd / ${l.baths} ba · ${l.sqft.toLocaleString()} sqft${
     l.loanType ? ` · ${l.loanType} assumable at ${formatRate(l.rate)}` : ''
@@ -124,7 +124,7 @@ function MiniStat({ label, value, sub }: { label: string; value: string; sub: st
 
 export default async function PropertyDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const l = findListing(id);
+  const l = await findListingById(id);
   if (!l) notFound();
 
   const { street, cityRegion } = splitAddress(l.address);
@@ -260,30 +260,14 @@ export default async function PropertyDetailPage({ params }: PageProps) {
             <div className="grid grid-cols-1 md:grid-cols-[1.1fr_1fr_1fr] gap-8 items-stretch">
               <div>
                 <div className="text-xs text-muted-2 font-medium">Monthly payment</div>
-                <div className="flex items-baseline gap-4 mt-2.5 flex-wrap">
-                  <div className="font-serif font-normal text-[52px] tracking-[-.02em] text-navy leading-none">
-                    {formatMoney(l.assumedMonthly)}
-                  </div>
-                  <div
-                    className="font-serif text-2xl text-muted line-through"
-                    style={{ textDecorationColor: '#D35932' }}
-                  >
-                    {formatMoney(l.marketMonthly)}
-                  </div>
+                <div className="font-serif font-normal text-[52px] tracking-[-.02em] text-navy leading-none mt-2.5">
+                  {formatMoney(l.assumedMonthly)}
                 </div>
-                {monthlySavings > 0 && (
-                  <div className="text-[13px] text-ok mt-2.5 font-medium">
-                    Save {formatMoney(monthlySavings)}/mo vs. a new loan today
-                  </div>
-                )}
               </div>
               <div>
                 <div className="text-xs text-muted-2 font-medium">Interest rate</div>
                 <div className="font-serif font-normal text-[52px] tracking-[-.02em] text-ink leading-none mt-2.5">
                   {formatRate(l.rate)}
-                </div>
-                <div className="text-[13px] text-muted-2 mt-2.5">
-                  vs. {formatRate(l.marketRate)} market today
                 </div>
               </div>
               <div>

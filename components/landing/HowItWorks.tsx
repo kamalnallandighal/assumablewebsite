@@ -21,28 +21,22 @@ const STEPS = [
 
 export function HowItWorks() {
   return (
-    <section id="how" className="px-6 md:px-10 py-16 md:py-24 bg-paper">
-      <div className="max-w-[1280px] mx-auto">
-        <div className="mb-10 md:mb-14">
-          <div className="text-xs uppercase tracking-widest text-muted">
-            How assumption works
-          </div>
-          <h2 className="font-serif font-normal text-[30px] md:text-[48px] leading-[1.05] tracking-tight text-ink mt-3">
-            You&apos;re not taking out a new loan.
-            <br className="hidden md:block" /> You&apos;re taking over theirs.
-          </h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <section id="how" className="px-6 md:px-14 py-20 bg-paper">
+      <div className="max-w-[1160px] mx-auto">
+        <div className="eyebrow">How assumption works</div>
+        <h2 className="font-serif font-normal text-[30px] md:text-[48px] tracking-[-.02em] text-ink mt-3.5 mb-12 leading-[1.05]">
+          You&apos;re not taking out a new loan.
+          <br className="hidden md:block" /> You&apos;re taking over theirs.
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {STEPS.map((s) => (
-            <div
-              key={s.num}
-              className="bg-cream border border-line rounded-card p-8 hover:-translate-y-1 transition-transform"
-            >
-              <div className="font-serif text-terra text-[56px] leading-none font-normal">
+            <div key={s.num}>
+              <div className="font-serif text-terra text-[48px] font-normal tracking-[-.02em] leading-none">
                 {s.num}
               </div>
-              <div className="mt-6 text-ink font-medium text-lg">{s.title}</div>
-              <p className="mt-3 text-muted text-sm leading-[1.6]">{s.body}</p>
+              <div className="mt-4 text-ink font-semibold text-[20px]">{s.title}</div>
+              <p className="mt-2.5 text-muted-2 text-sm leading-[1.6]">{s.body}</p>
             </div>
           ))}
         </div>

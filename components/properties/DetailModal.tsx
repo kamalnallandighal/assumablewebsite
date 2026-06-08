@@ -121,7 +121,6 @@ export function DetailModal({
   const factRows = sections.flatMap((s) => s.rows).slice(0, 8);
 
   const { street, cityRegion } = splitAddress(listing.address);
-  const monthlySavings = Math.max(0, listing.marketMonthly - listing.assumedMonthly);
   const downAmount = Math.round((listing.price * downPercent) / 100);
   const scaledM = scaledMonthly(listing.assumedMonthly, downPercent);
   const cashToClose = downAmount + 3200;
@@ -278,19 +277,11 @@ export function DetailModal({
                     <div className="font-serif font-normal text-[28px] tracking-[-.02em] mt-1 text-navy">
                       {formatMoney(listing.assumedMonthly)}
                     </div>
-                    {monthlySavings > 0 && (
-                      <div className="text-[11px] text-ok font-medium mt-0.5">
-                        +{formatMoney(monthlySavings)}/mo saved
-                      </div>
-                    )}
                   </div>
                   <div>
                     <div className="text-[11px] text-muted-2">Rate</div>
                     <div className="font-serif font-normal text-[28px] tracking-[-.02em] mt-1">
                       {formatRate(listing.rate)}
-                    </div>
-                    <div className="text-[11px] text-muted-2 mt-0.5">
-                      vs {formatRate(listing.marketRate)} today
                     </div>
                   </div>
                   <div>
