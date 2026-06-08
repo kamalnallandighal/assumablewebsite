@@ -1,0 +1,64 @@
+{
+  "listings": [
+    {
+      "_comment_": [
+        "REQUIRED fields are marked. Everything else is optional — script applies sensible defaults.",
+        "Address fields are required because we geocode them via Mapbox if lat/lng is missing.",
+        "interest_rate is in PERCENT format (2.875 not 0.02875).",
+        "unpaid_balance is in dollars. If you don't know it, a 15-20% guess below the asking price is a reasonable proxy."
+      ],
+
+      "street_address": "1820 N Central Ave",
+      "city": "Phoenix",
+      "state": "AZ",
+      "zip_code": "85004",
+      "lat": 33.464,
+      "lng": -112.074,
+
+      "price": 385000,
+      "beds": 2,
+      "baths": 2,
+      "sqft": 1150,
+      "lot_sqft": 6240,
+      "year_built": 1998,
+      "property_type": "single_family",
+
+      "photos": [
+        "https://example.com/photo1.jpg",
+        "https://example.com/photo2.jpg"
+      ],
+      "description": "Sun-drenched single-story in Central Phoenix with a remodeled kitchen and shaded backyard.",
+      "hoa_monthly": 0,
+
+      "listing_broker_name": null,
+      "listing_broker_phone": null,
+      "listing_broker_email": null,
+
+      "loan_type": "VA",
+      "interest_rate": 2.99,
+      "unpaid_balance": 333000,
+      "maturity_date": "2052-06-01",
+      "loan_term_years": 30,
+
+      "_notes_for_seed_script_": "The seed script will compute monthly_payment from rate + balance + remaining term, and insert a row into both `listings` and `verifications` (tier='seller-verified'). Skip `assumable_flags` for manual listings — Cotality enrichment will populate it later."
+    },
+
+    {
+      "street_address": "3102 N 7th St",
+      "city": "Phoenix",
+      "state": "AZ",
+      "zip_code": "85014",
+
+      "price": 495000,
+      "beds": 3,
+      "baths": 2,
+      "sqft": 1480,
+
+      "photos": ["https://example.com/photoA.jpg"],
+
+      "loan_type": "FHA",
+      "interest_rate": 3.25,
+      "unpaid_balance": 425000
+    }
+  ]
+}

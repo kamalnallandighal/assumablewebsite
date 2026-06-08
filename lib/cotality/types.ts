@@ -107,3 +107,72 @@ export interface EnrichedLienData {
 export interface EnrichedLienResponse {
   data?: EnrichedLienData;
 }
+
+// --- Property Detail (composite endpoint) ---
+// One call returns building specs (beds/baths/sqft/year), lot size, and
+// last-market-sale history. Narrow to just the fields we consume.
+
+export interface AllBuildingsSummary {
+  bedroomsCount?: number;
+  bathroomsCount?: number;
+  fullBathroomsCount?: number;
+  halfBathroomsCount?: number;
+  livingAreaSquareFeet?: number;
+  totalAreaSquareFeet?: number;
+}
+
+export interface BuildingItem {
+  constructionDetails?: {
+    yearBuilt?: number;
+    effectiveYearBuilt?: number;
+  };
+  structureClassification?: {
+    propertyTypeCode?: string; // 'SFR', 'CONDO', 'TWNHS', etc.
+  };
+}
+
+export interface BuildingData {
+  allBuildingsSummary?: AllBuildingsSummary;
+  Buildings?: BuildingItem[];
+}
+
+export interface SiteLocationLot {
+  lotSizeSquareFeet?: number;
+  lotSizeAcres?: number;
+}
+
+export interface SiteLocationData {
+  lot?: SiteLocationLot;
+}
+
+export interface OwnershipTransferTransaction {
+  saleAmount?: number;
+  saleDateDerived?: number;          // YYYYMMDD
+  saleRecordingDateDerived?: number;
+  isCashPurchase?: boolean;
+  saleTypeCode?: string;
+}
+
+export interface OwnershipTransferItem {
+  transactionDetails?: OwnershipTransferTransaction;
+}
+
+export interface OwnershipTransfersBlock {
+  items?: OwnershipTransferItem[];
+}
+
+export interface PropertyDetailData {
+  buildings?: { data?: BuildingData };
+  siteLocation?: { data?: SiteLocationData };
+  lastMarketSale?: OwnershipTransfersBlock;
+  mostRecentOwnerTransfer?: OwnershipTransfersBlock;
+}
+
+export interface PropertyDetailResponse {
+  buildings?: { data?: BuildingData };
+  siteLocation?: { data?: SiteLocationData };
+  lastMarketSale?: OwnershipTransfersBlock;
+  mostRecentOwnerTransfer?: OwnershipTransfersBlock;
+  // Top-level wrapper varies by tenant; cover both shapes.
+  data?: PropertyDetailData;
+}

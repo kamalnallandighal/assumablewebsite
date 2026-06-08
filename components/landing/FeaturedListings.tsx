@@ -1,8 +1,9 @@
 import Link from 'next/link';
-import { listings } from '../../lib/listings/data';
+import { fetchAllListings } from '../../lib/listings/repository';
 import { formatMoney, formatRate } from '../../lib/format';
 
-export function FeaturedListings() {
+export async function FeaturedListings() {
+  const listings = await fetchAllListings();
   const featured = listings
     .filter((l) => l.isAssumable && l.loanType)
     .slice()

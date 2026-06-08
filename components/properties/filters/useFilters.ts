@@ -15,8 +15,7 @@ import {
   type Bbox,
   type FilterState
 } from '../../../lib/listings/filters';
-import { listings } from '../../../lib/listings/data';
-import type { LoanType } from '../../../lib/listings/types';
+import type { Listing, LoanType } from '../../../lib/listings/types';
 
 // URL parsers. Defaults match `defaultFilterState`. nuqs strips params equal to
 // their default value, so the URL stays clean when filters are unset.
@@ -36,7 +35,7 @@ const parsers = {
   downMax: parseAsInteger
 };
 
-export function useFilters(bbox?: Bbox | null) {
+export function useFilters(allListings: readonly Listing[], bbox?: Bbox | null) {
   const [raw, setRaw] = useQueryStates(parsers, {
     history: 'replace',
     clearOnDefault: true
@@ -62,7 +61,10 @@ export function useFilters(bbox?: Bbox | null) {
   // Two-stage: chip filters first (cheap, drives the empty-state message),
   // then bbox intersection on what survives. The chip-filtered count is what
   // the count badge would show if the user "removed the boundary".
-  const chipFiltered = useMemo(() => applyFilters(listings, filters), [filters]);
+  const chipFiltered = useMemo(
+    () => applyFilters(allListings, filters),
+    [allListings, filters]
+  );
   const visible = useMemo(
     () => (bbox ? chipFiltered.filter((l) => isInBbox(l, bbox)) : chipFiltered),
     [chipFiltered, bbox]

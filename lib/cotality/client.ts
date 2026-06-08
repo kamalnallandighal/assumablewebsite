@@ -2,6 +2,7 @@ import { getCotalityToken } from './auth';
 import type {
   EnrichedLienResponse,
   MortgageTransactionProduct,
+  PropertyDetailResponse,
   PropertySearchHit
 } from './types';
 
@@ -57,6 +58,13 @@ export function getCurrentMortgage(clip: string): Promise<MortgageTransactionPro
 // field reference.
 export function getEnrichedLiens(clip: string): Promise<EnrichedLienResponse> {
   return authedGet<EnrichedLienResponse>(`/v2/properties/liens/enriched/${clip}`);
+}
+
+// Property Detail — composite endpoint that returns building specs
+// (beds/baths/sqft/year), site/lot, last market sale, ownership, tax assessment
+// in ONE call. We extract beds/baths/sqft + last-sale-price for our purposes.
+export function getPropertyDetail(clip: string): Promise<PropertyDetailResponse> {
+  return authedGet<PropertyDetailResponse>(`/v2/properties/${clip}/property-detail`);
 }
 
 export interface DocImageParams {

@@ -1,0 +1,23 @@
+{
+  "listings": [
+    { "street_address": "1111 W Diamondback Dr",       "city": "Chandler",        "beds": 3, "baths": 2.5, "sqft": 1545 },
+    { "street_address": "12222 S Paiute St",           "city": "Phoenix",         "beds": 2, "baths": 2,   "sqft": 1004 },
+    { "street_address": "4382 E Killarney St",         "city": "Gilbert",         "beds": 4, "baths": 3,   "sqft": 2569 },
+    { "street_address": "840 N April Dr",              "city": "Chandler",        "beds": 4, "baths": 2,   "sqft": 1849 },
+    { "street_address": "1342 W Emerald Ave #418",     "city": "Mesa",            "beds": 2, "baths": 1.5, "sqft": 1038 },
+    { "street_address": "677 N El Dorado Dr",          "city": "Gilbert",         "beds": 3, "baths": 2,   "sqft": 1571 },
+    { "street_address": "4136 W Laredo St",            "city": "Chandler",        "beds": 3, "baths": 2,   "sqft": 2323 },
+    { "street_address": "1447 E Warbler Rd",           "city": "Gilbert",         "beds": 3, "baths": 2,   "sqft": 2295 },
+    { "street_address": "9623 S Maple Ave",            "city": "Tempe",           "beds": 4, "baths": 2.5, "sqft": 2681 },
+    { "street_address": "600 S Dobson Rd #162",        "city": "Mesa",            "beds": 3, "baths": 1,   "sqft": 988  },
+    { "street_address": "6932 E Latham St",            "city": "Scottsdale",      "beds": 4, "baths": 2,   "sqft": 2060 },
+    { "street_address": "4901 E Kelton Ln #1052",      "city": "Scottsdale",      "beds": 2, "baths": 1.5, "sqft": 960  },
+    { "street_address": "9550 E Thunderbird Rd #214",  "city": "Scottsdale",      "beds": 2, "baths": 2,   "sqft": 1172 },
+    { "street_address": "4923 N Granite Reef Rd",      "city": "Scottsdale",      "beds": 2, "baths": 2.5, "sqft": 1656 },
+    { "street_address": "14433 N San Carlos Dr",       "city": "Fountain Hills",  "beds": 2, "baths": 2.5, "sqft": 1859 },
+    { "street_address": "10382 E Hillery Dr",          "city": "Scottsdale",      "beds": 4, "baths": 3,   "sqft": 2132 },
+    { "street_address": "5962 N 83rd St",              "city": "Scottsdale",      "beds": 4, "baths": 2.5, "sqft": 1464 },
+    { "street_address": "1432 W Emerald Ave #742",     "city": "Mesa",            "beds": 1, "baths": 1,   "sqft": 641  },
+    { "street_address": "12050 N Panorama Dr #209",    "city": "Fountain Hills",  "beds": 2, "baths": 2,   "sqft": 1204 }
+  ]
+}
