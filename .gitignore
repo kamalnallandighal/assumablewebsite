@@ -9,3 +9,6 @@ next-env.d.ts
 *.log
 coverage/
 .vercel
+
+# Supabase CLI local state (project ref + version cache, regenerated on link)
+supabase/.temp/
