@@ -4,19 +4,33 @@ const config: Config = {
   content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
   theme: {
     extend: {
+      // Steward Homes brand palette (March 2026 brief). Token NAMES are kept so
+      // the existing layout/classNames are untouched — only the VALUES change.
+      //   Sage-Gray Green #3D5A4F  primary: logo, headlines, numbers, CTAs, bands
+      //   Natural Linen   #F5F1E8  section backgrounds / negative space
+      //   Warm Gold       #B8860B  restrained accent (key figures, dividers, hover)
+      //   Slate           #4A5568  body + secondary text (never pure black)
+      //   Border Gray     #DDDDDD  hairline structure
       colors: {
-        ink: { DEFAULT: '#0F1623', 2: '#1B2236' },
-        navy: { DEFAULT: '#2B4072', deep: '#1A2855' },
-        terra: { DEFAULT: '#D35932', soft: '#FDD8CC', ink: '#631800' },
-        ok: '#1E6F5C',
-        cream: { DEFAULT: '#F4F3F2', 2: '#EBE6E2' },
+        // headlines, big serif numbers, and the dark "bands" (Jeff / off-market)
+        ink: { DEFAULT: '#3D5A4F', 2: '#2F4A40' },
+        // secondary financial figures (monthly payment, VA tag) → slate
+        navy: { DEFAULT: '#4A5568', deep: '#3A4456' },
+        // primary / CTA / brand accents → sage green
+        terra: { DEFAULT: '#3D5A4F', soft: '#E6EBE4', ink: '#2B4339' },
+        // restrained warm-gold accent — use sparingly
+        gold: { DEFAULT: '#B8860B', soft: '#EFE4C4' },
+        ok: '#3D5A4F',
+        cream: { DEFAULT: '#F5F1E8', 2: '#ECE4D5' },
         paper: '#FFFFFF',
-        line: { DEFAULT: '#E5E3E1', 2: '#D4D1CE' },
-        muted: { DEFAULT: '#868686', 2: '#5E5E5E' }
+        line: { DEFAULT: '#DDDDDD', 2: '#CFC8BA' },
+        muted: { DEFAULT: '#6B7280', 2: '#4A5568' }
       },
       fontFamily: {
         sans: ['var(--font-inter)', 'sans-serif'],
-        serif: ['var(--font-source-serif)', 'Georgia', 'serif']
+        // "serif" token drives all display type. Steward's primary face is
+        // Playfair Display (headlines + wordmark). Body stays Inter (`sans`).
+        serif: ['var(--font-playfair)', 'Georgia', 'serif']
       },
       boxShadow: {
         xs: '0 1px 0 rgba(16,22,35,.04), 0 1px 2px rgba(16,22,35,.04)',
@@ -31,8 +45,10 @@ const config: Config = {
         lg: '16px',
         xl: '20px',
         '2xl': '24px',
-        card: '12px',
-        pill: '999px'
+        card: '10px',
+        // Steward UI is rectangular with "slightly rounded corners at most" —
+        // the old pill shape reads consumer-app, not private-advisory.
+        pill: '4px'
       }
     }
   },

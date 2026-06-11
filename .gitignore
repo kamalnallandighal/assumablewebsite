@@ -10,5 +10,13 @@ next-env.d.ts
 coverage/
 .vercel
 
+# Claude Code local state + git worktrees
+.claude/
+
+# Local design/debug artifacts (screenshots + Playwright output) — root-level only
+/*.png
+/*.jpg
+.playwright-mcp/
+
 # Supabase CLI local state (project ref + version cache, regenerated on link)
 supabase/.temp/

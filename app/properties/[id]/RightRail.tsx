@@ -195,7 +195,7 @@ export function RightRail({ listing }: Props) {
             </div>
           </div>
         </div>
-        <button className="w-full mt-4 py-3 px-5 rounded-pill bg-terra text-paper text-sm font-medium hover:bg-[#B9472A]">
+        <button className="w-full mt-4 py-3 px-5 rounded-pill bg-terra text-paper text-sm font-medium hover:bg-[#B8860B]">
           Discuss ROI with an agent
         </button>
       </div>

@@ -190,8 +190,8 @@ export const PropertiesMap = forwardRef<PropertiesMapHandle, Props>(function Pro
       source: SOURCE_ID,
       filter: ['has', 'point_count'],
       paint: {
-        // Single terra orange — matches the site's CTA accent.
-        'circle-color': '#D35932',
+        // Steward sage green — matches the brand primary / CTA color.
+        'circle-color': '#3D5A4F',
         'circle-radius': ['step', ['get', 'point_count'], 20, 10, 24, 50, 30],
         'circle-stroke-color': '#ffffff',
         'circle-stroke-width': 2,

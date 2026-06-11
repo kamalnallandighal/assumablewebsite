@@ -1,3 +1,5 @@
+import { Reveal } from '../ui/Reveal';
+
 const FAQS = [
   {
     q: 'Do I need to be a veteran to assume a VA loan?',
@@ -14,7 +16,7 @@ const FAQS = [
   },
   {
     q: 'What does Jeff charge?',
-    a: "Jeff is paid by the seller as the listing or buyer's agent, the same as any standard transaction. There's no extra fee for using Assumable."
+    a: "Jeff is paid by the seller as the listing or buyer's agent, the same as any standard transaction. There's no extra fee for working with Steward Homes."
   }
 ];
 
@@ -22,18 +24,20 @@ export function Faq() {
   return (
     <section id="faq" className="px-6 md:px-14 py-20 bg-cream">
       <div className="max-w-[1160px] mx-auto">
-        <div className="eyebrow">The basics</div>
-        <h2 className="font-serif font-normal text-[30px] md:text-[40px] tracking-[-.02em] text-ink mt-2.5 mb-8">
-          Questions everyone asks
-        </h2>
+        <Reveal>
+          <div className="eyebrow">The basics</div>
+          <h2 className="font-serif font-normal text-[30px] md:text-[40px] tracking-[-.02em] text-ink mt-2.5 mb-8">
+            Questions everyone asks
+          </h2>
+        </Reveal>
         <div>
-          {FAQS.map((f) => (
+          {FAQS.map((f, i) => (
+            <Reveal key={f.q} delay={i * 90} y={16} className="border-t border-line-2 last:border-b">
             <details
-              key={f.q}
               {...(f.open ? { open: true } : {})}
-              className="group border-t border-line-2 last:border-b py-5"
+              className="group py-5"
             >
-              <summary className="cursor-pointer font-medium text-ink text-[18px] flex items-center justify-between gap-4 list-none [&::-webkit-details-marker]:hidden">
+              <summary className="cursor-pointer font-medium text-ink text-[18px] flex items-center justify-between gap-4 list-none [&::-webkit-details-marker]:hidden transition-colors group-open:text-gold">
                 <span>{f.q}</span>
                 <svg
                   width="18"
@@ -43,13 +47,14 @@ export function Faq() {
                   stroke="currentColor"
                   strokeWidth="1.8"
                   strokeLinecap="round"
-                  className="text-muted shrink-0 transition-transform group-open:rotate-45"
+                  className="text-muted shrink-0 transition-all group-open:rotate-45 group-open:text-gold"
                 >
                   <path d="M12 5v14M5 12h14" />
                 </svg>
               </summary>
               <p className="text-muted-2 mt-3.5 leading-[1.7] max-w-[760px] text-[15px]">{f.a}</p>
             </details>
+            </Reveal>
           ))}
         </div>
       </div>

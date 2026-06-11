@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
+import { Reveal } from '../ui/Reveal';
 
 export function DualBand() {
   const [email, setEmail] = useState('');
@@ -16,7 +17,7 @@ export function DualBand() {
       <div className="max-w-[1280px] mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Investor */}
-          <div className="bg-terra-soft border border-terra rounded-[24px] p-10 flex flex-col">
+          <Reveal className="bg-terra-soft border border-terra rounded-[24px] p-10 flex flex-col">
             <div className="text-xs uppercase tracking-widest text-terra-ink">
               For investors
             </div>
@@ -36,9 +37,9 @@ export function DualBand() {
                 <path d="M5 12h14M13 5l7 7-7 7" />
               </svg>
             </a>
-          </div>
+          </Reveal>
           {/* Off-market */}
-          <div className="bg-ink text-paper rounded-[24px] p-10 flex flex-col">
+          <Reveal delay={140} className="bg-ink text-paper rounded-[24px] p-10 flex flex-col">
             <div className="text-xs uppercase tracking-widest text-terra">
               Off-market
             </div>
@@ -69,7 +70,7 @@ export function DualBand() {
                 Unlock
               </button>
             </form>
-          </div>
+          </Reveal>
         </div>
       </div>
     </section>

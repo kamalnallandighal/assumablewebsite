@@ -448,7 +448,7 @@ export function DetailModal({
                     ? 'VA loan — rentable. Get ROI breakdown.'
                     : 'FHA is primary-residence only. Ask about VA in this area.'}
                 </div>
-                <button className="w-full mt-2.5 py-2 px-3.5 rounded-pill bg-terra text-paper text-[13px] font-medium hover:bg-[#B9472A]">
+                <button className="w-full mt-2.5 py-2 px-3.5 rounded-pill bg-terra text-paper text-[13px] font-medium hover:bg-[#B8860B]">
                   Discuss ROI
                 </button>
               </div>

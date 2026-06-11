@@ -1,5 +1,5 @@
 'use client';
-import { Suspense, useCallback, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useQueryState, parseAsString, parseAsStringEnum } from 'nuqs';
 import { Nav } from '../../components/nav/Nav';
 import { FilterBar } from '../../components/properties/FilterBar';
@@ -49,6 +49,11 @@ function PropertiesViewBody({ initialListings }: Props) {
   const [pendingBbox, setPendingBbox] = useState<Bbox | null>(null);
   const mapHandleRef = useRef<PropertiesMapHandle | null>(null);
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+
+  // One-time entrance fade for the app shell on load. Opacity-only so it never
+  // disturbs Mapbox's container measurement (a transform would).
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const onGeocode = useCallback((r: GeocoderResult) => {
     if (r.bbox) mapHandleRef.current?.flyToBbox(r.bbox);
@@ -107,7 +112,13 @@ function PropertiesViewBody({ initialListings }: Props) {
   const hiddenByBbox = chipFiltered.length - visible.length;
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
+    <div
+      className="h-screen flex flex-col overflow-hidden"
+      style={{
+        opacity: mounted ? 1 : 0,
+        transition: 'opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1)'
+      }}
+    >
       <Nav />
       <FilterBar
         filters={filters}

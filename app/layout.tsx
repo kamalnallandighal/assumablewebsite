@@ -1,23 +1,24 @@
 import './globals.css';
 import type { ReactNode } from 'react';
-import { Inter, Source_Serif_4 } from 'next/font/google';
+import { Inter, Playfair_Display } from 'next/font/google';
 import { Providers } from './providers';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
-const sourceSerif = Source_Serif_4({
+const playfair = Playfair_Display({
   subsets: ['latin'],
-  variable: '--font-source-serif',
+  style: ['normal', 'italic'],
+  variable: '--font-playfair',
   display: 'swap'
 });
 
 export const metadata = {
-  title: 'Assumable Homes',
+  title: 'Steward Homes — Assumable Mortgages in Arizona',
   description: 'FHA & VA assumable mortgage listings in Arizona.'
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${sourceSerif.variable}`}>
+    <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body className="font-sans bg-paper text-ink antialiased">
         <Providers>{children}</Providers>
       </body>

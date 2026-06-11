@@ -8,26 +8,53 @@ interface Props {
   listings: readonly Listing[];
 }
 
-const AUTO_ADVANCE_MS = 4000;
+// Per-slide choreography (ms):
+//   0 ──────────── house crossfades in (HOUSE_FADE)
+//   1000 ───────── chip fades in + starts its hover drift (CHIP_IN_DELAY)
+//   5300 ───────── chip fades back out (CHIP_OUT_AT) — gone by ~5.9s
+//   6000 ───────── advance → house crossfades to the next home (SLIDE_DURATION)
+const SLIDE_DURATION = 6000;
+const HOUSE_FADE = 1000;
+const CHIP_IN_DELAY = 1000;
+const CHIP_OUT_AT = 5300;
 
 export function HeroSlideshow({ listings }: Props) {
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [chipShown, setChipShown] = useState(false);
 
+  // Auto-advance — per-slide timeout so timing resets cleanly and pause holds.
   useEffect(() => {
     if (paused || listings.length <= 1) return;
-    const id = setInterval(() => {
-      setCurrent((c) => (c + 1) % listings.length);
-    }, AUTO_ADVANCE_MS);
-    return () => clearInterval(id);
-  }, [paused, listings.length]);
+    const id = setTimeout(
+      () => setCurrent((c) => (c + 1) % listings.length),
+      SLIDE_DURATION
+    );
+    return () => clearTimeout(id);
+  }, [current, paused, listings.length]);
+
+  // Chip fade-in: each new slide hides the chip, then reveals it once the
+  // house has settled (house fade + a 0.5s breath).
+  useEffect(() => {
+    setChipShown(false);
+    const id = setTimeout(() => setChipShown(true), CHIP_IN_DELAY);
+    return () => clearTimeout(id);
+  }, [current]);
+
+  // Chip fade-out before the slide advances — but hold it visible while the
+  // user is hovering (auto-advance is paused, so the chip should linger).
+  useEffect(() => {
+    if (paused) return;
+    const id = setTimeout(() => setChipShown(false), CHIP_OUT_AT);
+    return () => clearTimeout(id);
+  }, [current, paused]);
 
   if (listings.length === 0) return null;
 
   const next = () => setCurrent((c) => (c + 1) % listings.length);
   const prev = () => setCurrent((c) => (c - 1 + listings.length) % listings.length);
 
-  const padded = (n: number) => String(n).padStart(2, '0');
+  const active = listings[current];
 
   return (
     <div
@@ -46,9 +73,10 @@ export function HeroSlideshow({ listings }: Props) {
         return (
           <div
             key={l.id}
-            className={`absolute inset-0 transition-opacity duration-700 ease-out ${
+            className={`absolute inset-0 transition-opacity ease-in-out ${
               isActive ? 'opacity-100' : 'opacity-0 pointer-events-none'
             }`}
+            style={{ transitionDuration: `${HOUSE_FADE}ms` }}
             aria-hidden={!isActive}
             aria-roledescription="slide"
             aria-label={`${i + 1} of ${listings.length}: ${street}`}
@@ -58,7 +86,7 @@ export function HeroSlideshow({ listings }: Props) {
               <img
                 src={l.photo}
                 alt={l.address}
-                className="absolute inset-0 w-full h-full object-cover"
+                className="editorial-img absolute inset-0 w-full h-full object-cover"
                 loading={i === 0 ? 'eager' : 'lazy'}
               />
             ) : (
@@ -67,26 +95,6 @@ export function HeroSlideshow({ listings }: Props) {
 
             {/* Clean 2-stop gradient: dark at the base, transparent up top */}
             <div className="absolute inset-x-0 bottom-0 h-[58%] bg-gradient-to-t from-ink/85 to-transparent pointer-events-none" />
-
-            {/* Editorial counter — top-left, sits on the photo */}
-            <div className="absolute top-5 left-5 text-white text-[11px] font-medium tracking-[.16em] uppercase tabular-nums">
-              {padded(i + 1)} <span className="text-white/55">/</span> {padded(listings.length)}
-            </div>
-
-            {/* Rate badge — top-right, layered cream tile */}
-            {l.loanType && (
-              <div
-                className="absolute top-5 right-5 bg-paper rounded-xl px-3.5 py-2 border border-line"
-                style={{ boxShadow: '0 4px 12px rgba(15,22,35,.12)' }}
-              >
-                <div className="text-[9px] font-bold tracking-[.16em] text-terra uppercase">
-                  {l.loanType} Assumable
-                </div>
-                <div className="font-serif text-[22px] leading-none mt-1 tracking-[-.02em] text-ink">
-                  {formatRate(l.rate)}
-                </div>
-              </div>
-            )}
 
             {/* Bottom content overlay */}
             <div className="absolute inset-x-0 bottom-0 p-7 text-white">
@@ -118,19 +126,42 @@ export function HeroSlideshow({ listings }: Props) {
         );
       })}
 
-      {/* Thin terra progress bar — fills as the auto-advance counts down.
-          Key on `current` restarts the animation when slide changes. Pauses
-          via inline-style animation-play-state when user is hovering. */}
-      <div className="absolute top-0 inset-x-0 h-[2px] bg-white/15 z-20 pointer-events-none">
-        <div
-          key={`progress-${current}`}
-          className="h-full bg-terra origin-left"
-          style={{
-            animation: `slide-progress ${AUTO_ADVANCE_MS}ms linear forwards`,
-            animationPlayState: paused ? 'paused' : 'running'
-          }}
-        />
-      </div>
+      {/* Rate chip — choreographed in/out, gently hovering, points at the
+          house. Lives outside the slide loop so it animates independently of
+          the house crossfade. */}
+      {active?.loanType && (
+        <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+          <div
+            className="transition-opacity ease-out"
+            style={{
+              opacity: chipShown ? 1 : 0,
+              transitionDuration: '600ms',
+              animation: 'chip-float 4.5s ease-in-out infinite'
+            }}
+          >
+            <div
+              className="relative bg-paper rounded-2xl px-7 py-4 border border-line text-center"
+              style={{ boxShadow: '0 8px 20px rgba(15,22,35,.18)' }}
+            >
+              <div className="text-[11px] font-bold tracking-[.16em] text-ink uppercase">
+                {active.loanType} Assumable
+              </div>
+              <div className="font-serif font-bold text-[48px] leading-none mt-1.5 tracking-[-.02em] text-gold">
+                {formatRate(active.rate)}
+              </div>
+              {/* Downward pointer — speech-bubble tail aimed at the house */}
+              <div
+                className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0"
+                style={{
+                  borderLeft: '11px solid transparent',
+                  borderRight: '11px solid transparent',
+                  borderTop: '13px solid #FFFFFF'
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Side arrows — appear on hover, refined */}
       <button
